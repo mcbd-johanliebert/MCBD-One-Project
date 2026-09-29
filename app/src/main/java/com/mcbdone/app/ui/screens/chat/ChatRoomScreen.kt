@@ -126,6 +126,25 @@ fun ChatRoomScreen(
                     }
                 }
 
+                if (messages.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp, horizontal = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "💬 No messages yet in #${channel.name}\nBe the first to say hello to the community!",
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                color = TextMuted,
+                                fontSize = 13.sp,
+                                lineHeight = 20.sp
+                            )
+                        }
+                    }
+                }
+
                 items(messages, key = { it.id }) { msg ->
                     val isCurrent = (currentUser != null && msg.userId == currentUser?.id) ||
                             (msg.userName == currentUser?.fullName)

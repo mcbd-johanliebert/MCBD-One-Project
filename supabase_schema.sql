@@ -251,15 +251,6 @@ insert into public.channels (id, name, topic, icon, is_announcement) values
 ('builds-redstone', 'builds-and-redstone', 'অসাধারণ বিল্ড ও রেডস্টোন মেশিনারি শেয়ার', '🧱', false),
 ('bd-servers', 'bd-server-ips', 'বাংলাদেশি সেরা সার্ভার আইপি ও লিস্ট', '🎮', false);
 
-insert into public.messages (channel_id, user_name, user_avatar, minecraft_ign, user_rank, content) values
-('announcements', 'MCBD Admin 🇧🇩', 'https://crafthead.net/helm/Steve', 'MCBD_Staff', '👑 Admin', 'স্বাগতম Minecraft Bangladesh (MCBD ONE) অফিসিয়াল অ্যাপে! 🇧🇩🎮 এখানে সব বাংলাদেশি মাইনক্রাফটার একসাথে আড্ডা দিন, সার্ভার শেয়ার করুন ও টিম খুঁজুন!'),
-('general', 'Tanvir_BD', 'https://crafthead.net/helm/Alex', 'TanvirCraft', '💎 Diamond Member', 'সবাই কেমন আছেন? আজকে রাতে কে কে Bedwars খেলবেন? নক দেন! ⚔️'),
-('bd-servers', 'ServerMod', 'https://crafthead.net/helm/Notch', 'MCBD_Bot', '🛡️ Server Mod', 'বাংলাদেশি লো-পিং সার্ভার লিস্ট নিচে লাইভ দেখতে পাবেন! পিং চেক করে জয়েন করুন।');
-
-insert into public.servers (name, ip_address, port, gamemode, version, online_players, max_players, ping_ms, verified, description) values
-('MCBD Official SMP 🇧🇩', 'play.mcbd.network', 25565, 'Survival / Economy', '1.20 - 1.21', 184, 500, 18, true, 'অফিশিয়াল মাইনক্রাফট বাংলাদেশ সারভাইভাল সার্ভার। কাস্টম কোয়েস্ট ও লো-পিং।'),
-('BD Bedwars Arena', 'bedwars.bdcraft.net', 25565, 'Bedwars / Skywars', '1.8 - 1.21', 96, 300, 24, true, 'দ্রুততম ম্যাচমেকিং ও বাংলাদেশি লিডারবোর্ড।'),
-('Lifesteal BD SMP', 'lifesteal.banglacraft.xyz', 25565, 'Lifesteal SMP', '1.21.x', 67, 200, 29, true, 'হার্ডকোর লাইফস্টিল পিভিপি। হার্ট চুরি করুন এবং টিম গঠন করুন!');
 
 insert into public.app_versions (version_name, version_code, min_supported_version, is_mandatory, download_url, changelog, release_date) values
 ('1.0.0', 1, '1.0.0', false, 'https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.0', 

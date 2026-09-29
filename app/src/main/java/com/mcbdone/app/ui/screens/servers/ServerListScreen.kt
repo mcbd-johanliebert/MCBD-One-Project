@@ -98,6 +98,44 @@ fun ServerListScreen(
                     }
                 }
 
+                if (servers.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .shadow(4.dp, RoundedCornerShape(22.dp), spotColor = Color(0x10000000))
+                                    .clip(RoundedCornerShape(22.dp))
+                                    .background(Color(0xEAFFFFFF))
+                                    .border(1.dp, GlassBorderGradient, RoundedCornerShape(22.dp))
+                                    .padding(24.dp)
+                            ) {
+                                Text(text = "📡", fontSize = 32.sp)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "No BD Servers Listed Yet",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Verified Bangladeshi Minecraft servers will appear here with live ping & stats.",
+                                    fontSize = 12.sp,
+                                    color = TextSecondary,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
+
                 items(servers) { server ->
                     ServerCard(
                         server = server,

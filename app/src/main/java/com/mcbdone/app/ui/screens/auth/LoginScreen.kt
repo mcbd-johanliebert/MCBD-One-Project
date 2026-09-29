@@ -113,7 +113,7 @@ fun LoginScreen(
                         modifier = Modifier.padding(top = 6.dp, bottom = 24.dp)
                     )
 
-                    // Stats in Frosted Glass Row
+                    // Feature Highlights in Frosted Glass Row
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -123,16 +123,16 @@ fun LoginScreen(
                             .padding(vertical = 12.dp, horizontal = 8.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        StatItem(icon = Icons.Default.Groups, value = "2.4K+", label = "Crafters")
-                        StatItem(icon = Icons.Default.Diamond, value = "18+", label = "Servers")
-                        StatItem(icon = Icons.Default.Speed, value = "15ms", label = "Low Ping")
+                        StatItem(icon = Icons.Default.Groups, value = "Realtime", label = "Community")
+                        StatItem(icon = Icons.Default.Diamond, value = "Showcase", label = "Builds Hub")
+                        StatItem(icon = Icons.Default.Speed, value = "Low Ping", label = "Servers")
                     }
 
                     Spacer(modifier = Modifier.height(26.dp))
 
                     // Google Login Button (Primary User Request: "Use only google Login")
                     GlassButton(
-                        text = if (isLoading) "Connecting to Google..." else "Sign in with Google",
+                        text = if (isLoading) "Signing in with Google..." else "Sign in with Google",
                         onClick = {
                             val activity = context as? Activity
                             if (activity != null) {
@@ -147,19 +147,21 @@ fun LoginScreen(
                                             Toast.makeText(context, "স্বাগতম MCBD কমিউনিটিতে!", Toast.LENGTH_SHORT).show()
                                             onLoginSuccess()
                                         } else {
-                                            Toast.makeText(context, "Login succeeded as community member", Toast.LENGTH_SHORT).show()
-                                            onLoginSuccess()
+                                            val err = loginRes.exceptionOrNull()?.message ?: "Supabase Google Provider error"
+                                            Toast.makeText(
+                                                context,
+                                                "Supabase Auth Error: $err",
+                                                Toast.LENGTH_LONG
+                                            ).show()
                                         }
                                     } else {
                                         isLoading = false
-                                        // Graceful fallback for emulator or if Google Play Services isn't configured
+                                        val err = tokenResult.exceptionOrNull()?.localizedMessage ?: "Google Sign-In cancelled or failed"
                                         Toast.makeText(
                                             context,
-                                            "Demo mode login: ${tokenResult.exceptionOrNull()?.localizedMessage ?: "Connecting..."}",
-                                            Toast.LENGTH_SHORT
+                                            "Google Sign-In: $err",
+                                            Toast.LENGTH_LONG
                                         ).show()
-                                        chatRepository.onGoogleLoginSuccess("demo_token")
-                                        onLoginSuccess()
                                     }
                                 }
                             }
@@ -168,25 +170,6 @@ fun LoginScreen(
                         isPrimary = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Guest Instant Preview
-                    TextButton(
-                        onClick = {
-                            scope.launch {
-                                chatRepository.onGoogleLoginSuccess("preview_token")
-                                onLoginSuccess()
-                            }
-                        }
-                    ) {
-                        Text(
-                            text = "⚡ Instant Community Preview",
-                            color = EmeraldDark,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
                 }
             }
 

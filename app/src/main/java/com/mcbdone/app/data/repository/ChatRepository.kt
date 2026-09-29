@@ -101,12 +101,7 @@ class ChatRepository(context: Context) {
         replyTo: ChatMessage? = null,
         imageUrl: String? = null
     ): Result<ChatMessage> {
-        val user = _currentUser.value ?: UserProfile(
-            fullName = "BD Miner",
-            avatarUrl = "https://crafthead.net/helm/Steve",
-            minecraftIgn = "BD_Player",
-            rank = "⛏️ Survivalist"
-        )
+        val user = _currentUser.value ?: return Result.failure(Exception("You must be logged in to send messages"))
 
         val newMsg = ChatMessage(
             id = java.util.UUID.randomUUID().toString(),

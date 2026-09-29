@@ -87,16 +87,51 @@ fun BuildsShowcaseScreen(
                 }
             }
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                val filtered = if (selectedCategory == "All") showcaseItems
-                else showcaseItems.filter { it.category == selectedCategory }
+            val filtered = if (selectedCategory == "All") showcaseItems
+            else showcaseItems.filter { it.category == selectedCategory }
 
-                items(filtered) { item ->
-                    ShowcaseCard(item = item)
+            if (filtered.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .shadow(6.dp, RoundedCornerShape(24.dp), spotColor = Color(0x10000000))
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(Color(0xEAFFFFFF))
+                            .border(1.dp, GlassBorderGradient, RoundedCornerShape(24.dp))
+                            .padding(28.dp)
+                    ) {
+                        Text(text = "🧱", fontSize = 36.sp)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "No Builds in this Category Yet",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Share your creations with the Bangladeshi Minecraft community!",
+                            fontSize = 12.sp,
+                            color = TextSecondary,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(filtered) { item ->
+                        ShowcaseCard(item = item)
+                    }
                 }
             }
         }

@@ -42,15 +42,6 @@ fun ChatListScreen(
     val currentUser by chatRepository.currentUser.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    val activeCrafters = listOf(
-        Pair("TanvirCraft", "Tanvir_BD"),
-        Pair("SiamBuilder", "Siam_BD"),
-        Pair("RedstoneBoss", "RedstoneKing"),
-        Pair("ShantoGod", "ShantoPvP"),
-        Pair("AlexBD", "Alex_Pro"),
-        Pair("SteveMC", "MinecraftBD")
-    )
-
     AmbientGlassBackground(modifier = modifier) {
         Column(
             modifier = Modifier
@@ -60,7 +51,7 @@ fun ChatListScreen(
             // Glass Top Bar
             GlassTopBar(
                 title = "MCBD Community",
-                subtitle = "🟢 248 Online • Minecraft BD",
+                subtitle = "Minecraft Bangladesh Hub 🇧🇩",
                 actions = {
                     GlassIconButton(
                         icon = Icons.Default.Search,
@@ -73,42 +64,41 @@ fun ChatListScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                // Online Active Minecrafters Row
+                // User Welcome Frosted Glass Banner
                 item {
-                    Text(
-                        text = "ACTIVE CRAFTERS 🇧🇩",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextSecondary,
-                        letterSpacing = 0.8.sp,
-                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
-                    )
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    ) {
-                        items(activeCrafters) { (ign, name) ->
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.clickable {
-                                    // Quick select channel
-                                    channels.firstOrNull { it.id == "general" }?.let { onChannelSelected(it) }
-                                }
-                            ) {
+                    currentUser?.let { user ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                                .shadow(6.dp, RoundedCornerShape(22.dp), spotColor = Color(0x10000000))
+                                .clip(RoundedCornerShape(22.dp))
+                                .background(Color(0xEAFFFFFF))
+                                .border(1.2.dp, GlassBorderGradient, RoundedCornerShape(22.dp))
+                                .padding(16.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 MinecraftAvatar(
-                                    avatarUrl = "https://crafthead.net/helm/$ign",
-                                    ign = ign,
-                                    size = 52.dp,
+                                    avatarUrl = user.avatarUrl,
+                                    ign = user.minecraftIgn,
+                                    size = 48.dp,
                                     borderGlow = true
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = name,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = TextPrimary,
-                                    maxLines = 1
-                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = user.fullName,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
+                                    )
+                                    Text(
+                                        text = "IGN: ${user.minecraftIgn} • ${user.rank}",
+                                        fontSize = 12.sp,
+                                        color = EmeraldDark,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
                             }
                         }
                     }
