@@ -63,29 +63,6 @@ class ChatRepository(context: Context) {
         return Pair(needsUpdate, remoteVersion)
     }
 
-    fun triggerStrictUpdateDemo(enable: Boolean) {
-        if (enable) {
-            _latestVersion.value = AppVersionInfo(
-                versionName = "1.0.1",
-                versionCode = 2,
-                minSupportedVersion = "1.0.1",
-                isMandatory = true,
-                downloadUrl = "https://cvppveogubeudebsmazd.supabase.co/storage/v1/object/public/updates/app-debug.apk",
-                changelog = listOf(
-                    "🔥 Mandatory Security & Server protocol upgrade",
-                    "💎 Faster Realtime Chat engine & voice note preview",
-                    "⚔️ Low-latency ping optimizations for BD Bedwars"
-                )
-            )
-            _isUpdateAvailable.value = true
-            _isStrictUpdateRequired.value = true
-        } else {
-            _isStrictUpdateRequired.value = false
-        }
-    }
-
-
-
     suspend fun selectChannel(channel: Channel) {
         _currentChannel.value = channel
         loadMessages(channel.id)

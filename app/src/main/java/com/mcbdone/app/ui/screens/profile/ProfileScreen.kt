@@ -44,8 +44,8 @@ fun ProfileScreen(
     val scope = rememberCoroutineScope()
     val currentUser by chatRepository.currentUser.collectAsState()
 
-    var ignInput by remember(currentUser) { mutableStateOf(currentUser?.minecraftIgn ?: "BD_Player") }
-    var bioInput by remember(currentUser) { mutableStateOf(currentUser?.bio ?: "Minecraft BD Player 🇧🇩⛏️") }
+    var ignInput by remember(currentUser) { mutableStateOf(currentUser?.minecraftIgn.orEmpty()) }
+    var bioInput by remember(currentUser) { mutableStateOf(currentUser?.bio.orEmpty()) }
     var isEditing by remember { mutableStateOf(false) }
 
     var showVersionDialog by remember { mutableStateOf(false) }
@@ -94,18 +94,20 @@ fun ProfileScreen(
                             Spacer(modifier = Modifier.height(14.dp))
 
                             Text(
-                                text = currentUser?.fullName ?: "Minecraft Player",
+                                text = currentUser?.fullName.orEmpty(),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary
                             )
 
-                            Text(
-                                text = currentUser?.email ?: "player@mcbd.net",
-                                fontSize = 12.sp,
-                                color = TextSecondary,
-                                modifier = Modifier.padding(top = 2.dp)
-                            )
+                            if (!currentUser?.email.isNullOrBlank()) {
+                                Text(
+                                    text = currentUser?.email.orEmpty(),
+                                    fontSize = 12.sp,
+                                    color = TextSecondary,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -307,18 +309,6 @@ fun ProfileScreen(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-
-                            Spacer(modifier = Modifier.height(10.dp))
-                            // Direct In-App Update Demo Button
-                            GlassButton(
-                                text = "⚡ Test In-App Update Flow (v1.0.1)",
-                                icon = Icons.Default.CloudDownload,
-                                onClick = {
-                                    chatRepository.triggerStrictUpdateDemo(true)
-                                },
-                                isPrimary = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
                         }
                     }
                 }

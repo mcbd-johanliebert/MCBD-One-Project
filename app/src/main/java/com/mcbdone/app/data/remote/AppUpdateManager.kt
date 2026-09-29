@@ -39,75 +39,43 @@ class AppUpdateManager(private val context: Context) {
         .build()
 
     fun downloadAndTrackApk(downloadUrl: String): Flow<DownloadStatus> = flow {
-        emit(DownloadStatus.Downloading(0.01f, 1, 0.1f, 19.0f))
-
         val updatesDir = File(context.cacheDir, "updates").apply { mkdirs() }
         val targetFile = File(updatesDir, "mcbd_update.apk")
         if (targetFile.exists()) targetFile.delete()
 
         try {
-            // Check if it's a direct downloadable apk link
-            val isDirectDownload = downloadUrl.endsWith(".apk", ignoreCase = true) ||
-                    downloadUrl.contains("/download/", ignoreCase = true) ||
-                    downloadUrl.contains("supabase.co/storage", ignoreCase = true)
-
-            if (isDirectDownload) {
-                val request = Request.Builder().url(downloadUrl).build()
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) {
-                        throw Exception("Failed to download APK: HTTP ${response.code}")
-                    }
-                    val body = response.body ?: throw Exception("Empty response body")
-                    val totalBytes = body.contentLength().let { if (it > 0) it else 19 * 1024 * 1024L }
-                    val totalMb = totalBytes / (1024f * 1024f)
-
-                    val inputStream: InputStream = body.byteStream()
-                    val outputStream = FileOutputStream(targetFile)
-                    val buffer = ByteArray(8192)
-                    var bytesRead: Int
-                    var totalRead = 0L
-
-                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
-                        totalRead += bytesRead
-                        val progress = (totalRead.toFloat() / totalBytes.toFloat()).coerceIn(0f, 1f)
-                        val percentage = (progress * 100).toInt()
-                        val downloadedMb = totalRead / (1024f * 1024f)
-                        emit(DownloadStatus.Downloading(progress, percentage, downloadedMb, totalMb))
-                    }
-                    outputStream.flush()
-                    outputStream.close()
-                    inputStream.close()
+            val request = Request.Builder().url(downloadUrl).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    throw Exception("Failed to download APK: HTTP ${response.code}")
                 }
-            } else {
-                // Smooth realistic in-app simulation for GitHub release pages or initial test URLs
-                val simulatedTotalMb = 19.0f
-                for (p in 2..100) {
-                    delay(35)
-                    val progress = p / 100f
-                    val downloadedMb = simulatedTotalMb * progress
-                    emit(DownloadStatus.Downloading(progress, p, downloadedMb, simulatedTotalMb))
-                }
+                val body = response.body ?: throw Exception("Empty response from update server")
+                val totalBytes = body.contentLength()
+                val totalMb = if (totalBytes > 0) totalBytes / (1024f * 1024f) else 19.0f
 
-                // Copy existing local APK or create marker for install intent
-                val localApk = File(context.applicationInfo.publicSourceDir)
-                if (localApk.exists()) {
-                    localApk.copyTo(targetFile, overwrite = true)
-                } else {
-                    targetFile.writeText("MCBD ONE APK PACKAGE")
+                val inputStream: InputStream = body.byteStream()
+                val outputStream = FileOutputStream(targetFile)
+                val buffer = ByteArray(8192)
+                var bytesRead: Int
+                var totalRead = 0L
+
+                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                    outputStream.write(buffer, 0, bytesRead)
+                    totalRead += bytesRead
+                    val progress = if (totalBytes > 0) (totalRead.toFloat() / totalBytes.toFloat()).coerceIn(0f, 1f) else 0.5f
+                    val percentage = (progress * 100).toInt()
+                    val downloadedMb = totalRead / (1024f * 1024f)
+                    emit(DownloadStatus.Downloading(progress, percentage, downloadedMb, totalMb))
                 }
+                outputStream.flush()
+                outputStream.close()
+                inputStream.close()
             }
 
             emit(DownloadStatus.Completed(targetFile))
         } catch (e: Exception) {
-            Log.e("AppUpdateManager", "Download failed, using simulated fallback", e)
-            // If download fails due to network, gracefully complete local package update
-            val simulatedTotalMb = 19.0f
-            for (p in 1..100) {
-                delay(20)
-                emit(DownloadStatus.Downloading(p / 100f, p, simulatedTotalMb * (p / 100f), simulatedTotalMb))
-            }
-            emit(DownloadStatus.Completed(targetFile))
+            Log.e("AppUpdateManager", "Real download failed", e)
+            emit(DownloadStatus.Error(e.message ?: "Download failed. Please check network connection."))
         }
     }.flowOn(Dispatchers.IO)
 
