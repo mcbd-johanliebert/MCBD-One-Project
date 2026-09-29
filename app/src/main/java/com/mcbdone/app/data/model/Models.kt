@@ -75,18 +75,18 @@ data class ShowcaseItem(
 
 @Serializable
 data class AppVersionInfo(
-    val id: String = "v1",
-    @SerialName("version_name") val versionName: String = "1.0.0",
-    @SerialName("version_code") val versionCode: Int = 1,
+    val id: String = "v1.0.1",
+    @SerialName("version_name") val versionName: String = "1.0.1",
+    @SerialName("version_code") val versionCode: Int = 2,
     @SerialName("min_supported_version") val minSupportedVersion: String = "1.0.0",
     @SerialName("is_mandatory") val isMandatory: Boolean = false,
-    @SerialName("download_url") val downloadUrl: String = "https://github.com/mcbdone/app/releases/tag/v1.0.0",
+    @SerialName("download_url") val downloadUrl: String = "https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.1",
     val changelog: List<String> = listOf(
-        "Official launch of MCBD ONE",
-        "White Themed Glassmorphic UI with dynamic ambient refraction",
-        "Minecraft skin avatar engine & rank badges",
-        "Bangladeshi server hub with live ping & player count",
-        "Google Authentication & Supabase Realtime synchronization"
+        "MCBD ONE v1.0.1 Release",
+        "Awwwards-inspired responsive glassmorphism for phones, foldables, and tablets",
+        "Staff badge system with unique vector icons for Developer, Admin, Executive & Moderators",
+        "Real-time Database Storage Health Gauge & 500MB quota preventive actions",
+        "Root Developer Control Center with member badge delegation"
     ),
     @SerialName("release_date") val releaseDate: String = "September 2026"
 )

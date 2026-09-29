@@ -440,18 +440,18 @@ class SupabaseManager(context: Context) {
 
     companion object {
         val fallbackVersion = AppVersionInfo(
-            versionName = "1.0.0",
-            versionCode = 1,
+            id = "v1.0.1",
+            versionName = "1.0.1",
+            versionCode = 2,
             minSupportedVersion = "1.0.0",
             isMandatory = false,
-            downloadUrl = "https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.0",
+            downloadUrl = "https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.1",
             changelog = listOf(
-                "Official launch of MCBD ONE (v1.0.0)",
-                "White Themed Glassmorphic UI with dynamic light refraction",
-                "Custom Minecraft 3D skin heads & rank system",
-                "Bangladesh verified server list with live ping & player count",
-                "Realtime community channels with vector icon reactions",
-                "Google Auth & Supabase Realtime synchronization"
+                "MCBD ONE v1.0.1 Release",
+                "Awwwards-inspired responsive glassmorphism for phones, foldables, and tablets",
+                "Staff badge system with unique vector icons for Developer, Admin, Executive & Moderators",
+                "Real-time Database Storage Health Gauge & 500MB quota preventive actions",
+                "Root Developer Control Center with member badge delegation"
             ),
             releaseDate = "September 2026"
         )

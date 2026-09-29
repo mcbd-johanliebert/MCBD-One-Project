@@ -389,7 +389,7 @@ fun ProfileScreen(
                             Spacer(modifier = Modifier.height(10.dp))
                             InfoRow(label = "Current App Version", value = "v${chatRepository.currentAppVersion} (Build ${chatRepository.currentVersionCode})")
                             InfoRow(label = "Latest Remote Release", value = "v${latestVersion.versionName} (${latestVersion.releaseDate})")
-                            InfoRow(label = "Git Branch / Tag", value = "main @ v1.0.0")
+                            InfoRow(label = "Git Branch / Tag", value = "main @ v1.0.1")
 
                             Spacer(modifier = Modifier.height(12.dp))
                             Row(

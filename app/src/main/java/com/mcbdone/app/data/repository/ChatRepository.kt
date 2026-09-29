@@ -29,8 +29,8 @@ class ChatRepository(context: Context) {
     private val _currentUser = MutableStateFlow<UserProfile?>(supabase.currentUser)
     val currentUser: StateFlow<UserProfile?> = _currentUser.asStateFlow()
 
-    val currentAppVersion = "1.0.0"
-    val currentVersionCode = 1
+    val currentAppVersion = "1.0.1"
+    val currentVersionCode = 2
 
     private val _latestVersion = MutableStateFlow<AppVersionInfo>(SupabaseManager.fallbackVersion)
     val latestVersion: StateFlow<AppVersionInfo> = _latestVersion.asStateFlow()

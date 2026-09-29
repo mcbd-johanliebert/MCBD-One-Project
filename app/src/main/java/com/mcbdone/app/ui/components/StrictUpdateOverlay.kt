@@ -45,7 +45,7 @@ import java.io.File
  */
 @Composable
 fun StrictUpdateOverlay(
-    currentVersion: String = "1.0.0",
+    currentVersion: String = "1.0.1",
     versionInfo: AppVersionInfo,
     modifier: Modifier = Modifier
 ) {

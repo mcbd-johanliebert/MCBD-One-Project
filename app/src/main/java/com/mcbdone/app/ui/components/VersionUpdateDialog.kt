@@ -34,13 +34,13 @@ import com.mcbdone.app.ui.theme.*
 
 @Composable
 fun VersionUpdateDialog(
-    currentVersion: String = "1.0.0",
+    currentVersion: String = "1.0.1",
     versionInfo: AppVersionInfo,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val isNewUpdate = versionInfo.versionCode > 1 || versionInfo.versionName != currentVersion
+    val isNewUpdate = versionInfo.versionCode > 2 || versionInfo.versionName != currentVersion
 
     Dialog(onDismissRequest = {
         if (!versionInfo.isMandatory) onDismiss()
