@@ -19,7 +19,7 @@
    - Automatic Minecraft profile creation (`profiles` table).
 
 3. **Community Channels & Realtime Chat**:
-   - `# 📢 announcements` — Official MCBD tournaments, events, and server updates.
+   - `# announcements` — Official MCBD events and server updates.
    - `# 💬 general-chat` — Community hangout and discussions.
    - `# ⚔️ pvp-bedwars` — Bedwars, Skywars squads and combat tactics.
    - `# 🧱 builds-redstone` — Base showcases and redstone machinery.

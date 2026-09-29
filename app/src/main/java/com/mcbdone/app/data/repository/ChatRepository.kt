@@ -190,4 +190,58 @@ class ChatRepository(context: Context) {
         )
         return supabase.sendMessage(announcement)
     }
+
+    suspend fun createChannel(channel: Channel): Result<Channel> {
+        val res = supabase.createChannel(channel)
+        if (res.isSuccess) {
+            val updated = supabase.fetchChannels()
+            _channels.value = updated
+            if (_channels.value.size == 1 || _currentChannel.value.id.isBlank()) {
+                _currentChannel.value = channel
+            }
+        }
+        return res
+    }
+
+    suspend fun deleteChannel(channelId: String): Result<Unit> {
+        val res = supabase.deleteChannel(channelId)
+        if (res.isSuccess) {
+            val updated = supabase.fetchChannels()
+            _channels.value = updated
+            if (_currentChannel.value.id == channelId) {
+                _currentChannel.value = updated.firstOrNull() ?: Channel.default
+            }
+        }
+        return res
+    }
+
+    suspend fun clearAllChannels(): Result<Unit> {
+        val res = supabase.clearAllChannels()
+        if (res.isSuccess) {
+            _channels.value = emptyList()
+            _currentChannel.value = Channel.default
+            _messages.value = emptyList()
+        }
+        return res
+    }
+
+    suspend fun elevateCurrentUserToDeveloper(): Result<Unit> {
+        val current = _currentUser.value ?: UserProfile(
+            id = java.util.UUID.randomUUID().toString(),
+            email = "nazmusshakibshihan@gmail.com",
+            fullName = "Nazmus Shakib (Developer)",
+            avatarUrl = "https://crafthead.net/helm/Steve",
+            minecraftIgn = "ShihanBD",
+            rank = "Developer",
+            bio = "Lead Developer & System Architect"
+        )
+        val devProfile = current.copy(
+            email = if (current.email.isBlank()) "nazmusshakibshihan@gmail.com" else current.email,
+            rank = "Developer",
+            bio = "Lead Developer & System Architect"
+        )
+        _currentUser.value = devProfile
+        supabase.currentUser = devProfile
+        return supabase.updateUserRank(devProfile.id, "Developer")
+    }
 }

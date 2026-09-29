@@ -172,13 +172,76 @@ class SupabaseManager(context: Context) {
                 if (response.isSuccessful) {
                     val body = response.body?.string().orEmpty()
                     val channels = json.decodeFromString<List<Channel>>(body)
-                    if (channels.isNotEmpty()) return@withContext channels
+                    return@withContext channels
                 }
             }
         } catch (e: Exception) {
             Log.w("SupabaseManager", "Using fallback channels", e)
         }
         fallbackChannels
+    }
+
+    suspend fun createChannel(channel: Channel): Result<Channel> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/channels"
+            val body = json.encodeToString(channel)
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .addHeader("Prefer", "resolution=merge-duplicates")
+                .addHeader("Content-Type", "application/json")
+                .post(body.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    Result.success(channel)
+                } else {
+                    Result.failure(Exception("Failed to create channel: ${response.code}"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteChannel(channelId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/channels?id=eq.$channelId"
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(Unit)
+                else Result.failure(Exception("Failed to delete channel: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun clearAllChannels(): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/channels?id=neq.placeholder_keep_none"
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(Unit)
+                else Result.failure(Exception("Failed to clear channels: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun fetchMessages(channelId: String): List<ChatMessage> = withContext(Dispatchers.IO) {
@@ -456,13 +519,7 @@ class SupabaseManager(context: Context) {
             releaseDate = "September 2026"
         )
 
-        val fallbackChannels = listOf(
-            Channel("announcements", "announcements", "অফিশিয়াল বিডি টুর্নামেন্ট ও সার্ভার আপডেট", "campaign", true),
-            Channel("general", "general-chat", "বাংলাদেশি মাইনক্রাফটারদের আড্ডা ও খোশগল্প", "chat", false),
-            Channel("pvp-bedwars", "pvp-and-bedwars", "বেডওয়ার্স স্কোয়াড ও পিভিপি ট্রিক্স", "shield", false),
-            Channel("builds-redstone", "builds-and-redstone", "অসাধারণ বিল্ড ও রেডস্টোন মেশিনারি শেয়ার", "architecture", false),
-            Channel("bd-servers", "bd-server-ips", "বাংলাদেশি সেরা সার্ভার আইপি ও লিস্ট", "dns", false)
-        )
+        val fallbackChannels = emptyList<Channel>()
 
         val fallbackMessages = emptyList<ChatMessage>()
         val fallbackServers = emptyList<MinecraftServer>()

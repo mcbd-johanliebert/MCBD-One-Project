@@ -53,18 +53,29 @@ fun ChatListScreen(
                 title = "MCBD Community",
                 subtitle = "Minecraft Bangladesh Hub",
                 actions = {
-                    if (chatRepository.isDeveloperOrAdmin()) {
-                        GlassIconButton(
-                            icon = Icons.Default.Terminal,
-                            tint = Color(0xFF0284C7),
-                            onClick = { showAdminCenter = true }
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFF0284C7))
+                            .clickable { showAdminCenter = true }
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Terminal,
+                                contentDescription = "Dev Console",
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Dev Panel",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
-                    GlassIconButton(
-                        icon = Icons.Default.Search,
-                        onClick = { /* open search */ }
-                    )
                 }
             )
 
@@ -134,6 +145,55 @@ fun ChatListScreen(
                             color = EmeraldDark,
                             fontWeight = FontWeight.SemiBold
                         )
+                    }
+                }
+
+                if (channels.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp)
+                                .shadow(6.dp, RoundedCornerShape(24.dp), spotColor = Color(0x10000000))
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(Color(0xE6FFFFFF))
+                                .border(1.dp, GlassBorderGradient, RoundedCornerShape(24.dp))
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Default.ChatBubbleOutline,
+                                    contentDescription = null,
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(44.dp)
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Text(
+                                    text = "No Channels Yet",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = TextPrimary
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "Open Developer Panel to create custom channels for your community.",
+                                    fontSize = 13.sp,
+                                    color = TextSecondary,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(
+                                    onClick = { showAdminCenter = true },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
+                                    shape = RoundedCornerShape(14.dp)
+                                ) {
+                                    Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(text = "Create Channel in Dev Panel", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                     }
                 }
 

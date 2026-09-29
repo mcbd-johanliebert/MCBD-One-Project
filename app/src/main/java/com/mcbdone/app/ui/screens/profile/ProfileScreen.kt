@@ -194,94 +194,122 @@ fun ProfileScreen(
                     }
                 }
 
-                // Developer & Admin Special Access Card
-                if (chatRepository.isDeveloperOrAdmin()) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .shadow(8.dp, RoundedCornerShape(22.dp), spotColor = Color(0x200284C7))
-                                .clip(RoundedCornerShape(22.dp))
-                                .background(
-                                    Brush.linearGradient(
-                                        listOf(Color(0xFFF0F9FF), Color(0xFFE0F2FE))
-                                    )
+                // Developer & Admin Special Access Card (Always accessible to you)
+                item {
+                    val isDev = chatRepository.isDeveloperOrAdmin()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(8.dp, RoundedCornerShape(22.dp), spotColor = Color(0x200284C7))
+                            .clip(RoundedCornerShape(22.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(Color(0xFFF0F9FF), Color(0xFFE0F2FE))
                                 )
-                                .border(1.2.dp, Color(0xFF0284C7).copy(alpha = 0.5f), RoundedCornerShape(22.dp))
-                                .padding(18.dp)
-                        ) {
-                            Column {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(36.dp)
-                                                .clip(CircleShape)
-                                                .background(Color(0xFF0284C7)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Terminal,
-                                                contentDescription = null,
-                                                tint = Color.White,
-                                                modifier = Modifier.size(20.dp)
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        Column {
-                                            Text(
-                                                text = "Developer & Admin Access",
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.ExtraBold,
-                                                color = Color(0xFF0369A1)
-                                            )
-                                            Text(
-                                                text = "Realtime Database Storage & Staff Badges",
-                                                fontSize = 11.sp,
-                                                color = Color(0xFF0284C7)
-                                            )
-                                        }
-                                    }
-
+                            )
+                            .border(1.2.dp, Color(0xFF0284C7).copy(alpha = 0.5f), RoundedCornerShape(22.dp))
+                            .padding(18.dp)
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(
                                         modifier = Modifier
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(Color(0xFF0284C7).copy(alpha = 0.15f))
-                                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFF0284C7)),
+                                        contentAlignment = Alignment.Center
                                     ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Terminal,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
                                         Text(
-                                            text = "ROOT DEV",
-                                            fontSize = 9.sp,
+                                            text = "Developer & Admin Access",
+                                            fontSize = 14.sp,
                                             fontWeight = FontWeight.ExtraBold,
+                                            color = Color(0xFF0369A1)
+                                        )
+                                        Text(
+                                            text = "Storage, Channel Creator & Badge Delegation",
+                                            fontSize = 11.sp,
                                             color = Color(0xFF0284C7)
                                         )
                                     }
                                 }
 
-                                Spacer(modifier = Modifier.height(14.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFF0284C7).copy(alpha = 0.15f))
+                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                ) {
+                                    Text(
+                                        text = if (isDev) "ROOT DEV" else "DEV ACCESS",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color(0xFF0284C7)
+                                    )
+                                }
+                            }
 
-                                Button(
-                                    onClick = { showAdminCenter = true },
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            Button(
+                                onClick = { showAdminCenter = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
+                                shape = RoundedCornerShape(14.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AdminPanelSettings,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Open Admin & Storage Control Center",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = Color.White
+                                )
+                            }
+
+                            if (!isDev) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedButton(
+                                    onClick = {
+                                        scope.launch {
+                                            chatRepository.elevateCurrentUserToDeveloper()
+                                            Toast.makeText(context, "Developer root access granted!", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
                                     modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
-                                    shape = RoundedCornerShape(14.dp)
+                                    shape = RoundedCornerShape(14.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF0284C7))
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.AdminPanelSettings,
+                                        imageVector = Icons.Default.VerifiedUser,
                                         contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(18.dp)
+                                        tint = Color(0xFF0284C7),
+                                        modifier = Modifier.size(16.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "Open Admin & Storage Control Center",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 13.sp,
-                                        color = Color.White
+                                        text = "Authorize as Developer (nazmusshakibshihan@gmail.com)",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFF0284C7)
                                     )
                                 }
                             }

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.mcbdone.app.data.model.Channel
 import com.mcbdone.app.data.model.DatabaseStorageStats
 import com.mcbdone.app.data.model.UserProfile
 import com.mcbdone.app.data.repository.ChatRepository
@@ -41,7 +42,9 @@ fun AdminControlCenterDialog(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var selectedTab by remember { mutableIntStateOf(0) } // 0: Storage, 1: Badges, 2: Quick Broadcast
+    var selectedTab by remember { mutableIntStateOf(0) } // 0: Storage, 1: Channels, 2: Badges, 3: Quick Broadcast
+    val channels by chatRepository.channels.collectAsState()
+    val currentUser by chatRepository.currentUser.collectAsState()
     var storageStats by remember { mutableStateOf(DatabaseStorageStats()) }
     var isLoadingStats by remember { mutableStateOf(true) }
 
@@ -51,6 +54,7 @@ fun AdminControlCenterDialog(
 
     var targetUserForRole by remember { mutableStateOf<UserProfile?>(null) }
     var showPurgeConfirm by remember { mutableStateOf(false) }
+    var showClearChannelsConfirm by remember { mutableStateOf(false) }
 
     var broadcastText by remember { mutableStateOf("") }
     var isBroadcasting by remember { mutableStateOf(false) }
@@ -62,9 +66,9 @@ fun AdminControlCenterDialog(
         isLoadingStats = false
     }
 
-    // Load users when switching to Badges tab
+    // Load users when switching to Badges tab (tab 2)
     LaunchedEffect(selectedTab) {
-        if (selectedTab == 1 && usersList.isEmpty()) {
+        if (selectedTab == 2 && usersList.isEmpty()) {
             isLoadingUsers = true
             usersList = chatRepository.fetchAllUsers()
             isLoadingUsers = false
@@ -119,17 +123,40 @@ fun AdminControlCenterDialog(
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
-                                    text = "Admin Control Center",
-                                    fontSize = 17.sp,
+                                    text = "Developer & Admin Control",
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary
                                 )
-                                Text(
-                                    text = "nazmusshakibshihan@gmail.com • Root Dev",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = TextSecondary
-                                )
+                                val devEmail = currentUser?.email?.ifBlank { "nazmusshakibshihan@gmail.com" } ?: "nazmusshakibshihan@gmail.com"
+                                val isDeveloper = currentUser?.rank == "Developer"
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "$devEmail • ${currentUser?.rank ?: "Developer"}",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = if (isDeveloper) Color(0xFF0284C7) else TextSecondary
+                                    )
+                                    if (!isDeveloper) {
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = "(Tap to Elevate)",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = EmeraldDark,
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(4.dp))
+                                                .background(Color(0x1810B981))
+                                                .clickable {
+                                                    scope.launch {
+                                                        chatRepository.elevateCurrentUserToDeveloper()
+                                                        Toast.makeText(context, "Elevated to Root Developer!", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                }
+                                                .padding(horizontal = 4.dp, vertical = 1.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
 
@@ -151,7 +178,7 @@ fun AdminControlCenterDialog(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Segmented Tabs Pill
+                    // Segmented Tabs Pill (4 tabs)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -161,25 +188,32 @@ fun AdminControlCenterDialog(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         TabPillButton(
-                            title = "Storage Monitor",
+                            title = "Storage",
                             icon = Icons.Default.PieChart,
                             selected = selectedTab == 0,
                             modifier = Modifier.weight(1f),
                             onClick = { selectedTab = 0 }
                         )
                         TabPillButton(
-                            title = "Staff Badges",
-                            icon = Icons.Default.MilitaryTech,
+                            title = "Channels",
+                            icon = Icons.Default.Dns,
                             selected = selectedTab == 1,
                             modifier = Modifier.weight(1f),
                             onClick = { selectedTab = 1 }
                         )
                         TabPillButton(
-                            title = "Quick Actions",
-                            icon = Icons.Default.Campaign,
+                            title = "Staff",
+                            icon = Icons.Default.MilitaryTech,
                             selected = selectedTab == 2,
                             modifier = Modifier.weight(1f),
                             onClick = { selectedTab = 2 }
+                        )
+                        TabPillButton(
+                            title = "Broadcast",
+                            icon = Icons.Default.Campaign,
+                            selected = selectedTab == 3,
+                            modifier = Modifier.weight(1f),
+                            onClick = { selectedTab = 3 }
                         )
                     }
 
@@ -200,7 +234,32 @@ fun AdminControlCenterDialog(
                             },
                             onPurgeMessages = { showPurgeConfirm = true }
                         )
-                        1 -> StaffBadgesTab(
+                        1 -> ChannelsManagerTab(
+                            channels = channels,
+                            onCreateChannel = { newChannel ->
+                                scope.launch {
+                                    val res = chatRepository.createChannel(newChannel)
+                                    if (res.isSuccess) {
+                                        Toast.makeText(context, "#${newChannel.name} তৈরি হয়েছে!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        val err = res.exceptionOrNull()?.message ?: "ত্রুটি হয়েছে"
+                                        Toast.makeText(context, "ব্যর্থ: $err", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            },
+                            onDeleteChannel = { channelId ->
+                                scope.launch {
+                                    val res = chatRepository.deleteChannel(channelId)
+                                    if (res.isSuccess) {
+                                        Toast.makeText(context, "চ্যানেল মুছে ফেলা হয়েছে!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "মুছে ফেলতে সমস্যা হয়েছে", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            },
+                            onClearAll = { showClearChannelsConfirm = true }
+                        )
+                        2 -> StaffBadgesTab(
                             users = usersList,
                             isLoading = isLoadingUsers,
                             searchQuery = searchQuery,
@@ -214,7 +273,7 @@ fun AdminControlCenterDialog(
                                 }
                             }
                         )
-                        2 -> QuickActionsTab(
+                        3 -> QuickActionsTab(
                             broadcastText = broadcastText,
                             onBroadcastChange = { broadcastText = it },
                             isBroadcasting = isBroadcasting,
@@ -301,6 +360,51 @@ fun AdminControlCenterDialog(
                 },
                 dismissButton = {
                     TextButton(onClick = { showPurgeConfirm = false }) {
+                        Text("Cancel", color = TextPrimary)
+                    }
+                }
+            )
+        }
+
+        // Clear All Channels Confirmation Dialog
+        if (showClearChannelsConfirm) {
+            AlertDialog(
+                onDismissRequest = { showClearChannelsConfirm = false },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.DeleteForever,
+                        contentDescription = null,
+                        tint = Color(0xFFDC2626)
+                    )
+                },
+                title = { Text("Clear All Default Channels?", fontWeight = FontWeight.Bold) },
+                text = {
+                    Text(
+                        "This will wipe all existing channels and their message history from Supabase, allowing you to build your clean, custom channel list from scratch.",
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showClearChannelsConfirm = false
+                            scope.launch {
+                                val res = chatRepository.clearAllChannels()
+                                if (res.isSuccess) {
+                                    Toast.makeText(context, "All default channels deleted!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Failed to clear channels", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
+                    ) {
+                        Text("Wipe All Channels", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showClearChannelsConfirm = false }) {
                         Text("Cancel", color = TextPrimary)
                     }
                 }
@@ -945,7 +1049,7 @@ private fun QuickActionsTab(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(100.dp),
-                        placeholder = { Text("Write official tournament / server announcement...", fontSize = 12.sp) },
+                        placeholder = { Text("Write official community / server announcement...", fontSize = 12.sp) },
                         shape = RoundedCornerShape(14.dp)
                     )
 
@@ -964,6 +1068,335 @@ private fun QuickActionsTab(
                             Icon(imageVector = Icons.Default.Send, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Post to #announcements", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChannelsManagerTab(
+    channels: List<Channel>,
+    onCreateChannel: (Channel) -> Unit,
+    onDeleteChannel: (String) -> Unit,
+    onClearAll: () -> Unit
+) {
+    var channelName by remember { mutableStateOf("") }
+    var channelTopic by remember { mutableStateOf("") }
+    var selectedIcon by remember { mutableStateOf("chat") }
+    var isAnnouncement by remember { mutableStateOf(false) }
+
+    val iconOptions = listOf(
+        Pair("chat", Icons.Default.ChatBubbleOutline),
+        Pair("campaign", Icons.Default.Campaign),
+        Pair("shield", Icons.Default.Shield),
+        Pair("architecture", Icons.Default.Architecture),
+        Pair("dns", Icons.Default.Dns),
+        Pair("sports", Icons.Default.SportsEsports),
+        Pair("diamond", Icons.Default.Diamond),
+        Pair("terminal", Icons.Default.Terminal)
+    )
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Quick Actions Banner (Clear All Default Channels)
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Color(0xFFFEF2F2))
+                    .border(1.dp, Color(0xFFFCA5A5), RoundedCornerShape(18.dp))
+                    .padding(14.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "ডিফল্ট চ্যানেল পরিষ্কার করুন",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF991B1B)
+                        )
+                        Text(
+                            text = "সব ডামি চ্যানেল ডিলিট করে সম্পূর্ণ নতুন চ্যানেল তৈরি করুন",
+                            fontSize = 11.sp,
+                            color = Color(0xFFB91C1C)
+                        )
+                    }
+                    Button(
+                        onClick = onClearAll,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.DeleteSweep, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Clear All", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+
+        // Create Channel Form Card
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFFF8FAFC))
+                    .border(1.2.dp, Color(0x18000000), RoundedCornerShape(20.dp))
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.AddCircleOutline,
+                            contentDescription = null,
+                            tint = EmeraldPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Create New Channel",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(text = "CHANNEL NAME / SLUG", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = channelName,
+                        onValueChange = { 
+                            channelName = it.lowercase().replace(" ", "-").filter { c -> c.isLetterOrDigit() || c == '-' }
+                        },
+                        placeholder = { Text("e.g. general, announcements, pvp-talk", fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(text = "CHANNEL TOPIC / DESCRIPTION", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = channelTopic,
+                        onValueChange = { channelTopic = it },
+                        placeholder = { Text("e.g. Official community chat for Bangladeshi Minecraft players", fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(text = "SELECT ICON", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        iconOptions.forEach { (iconKey, vector) ->
+                            val isSelected = selectedIcon == iconKey
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) EmeraldPrimary else Color(0x15000000))
+                                    .border(if (isSelected) 1.5.dp else 0.dp, EmeraldDark, CircleShape)
+                                    .clickable { selectedIcon = iconKey },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = vector,
+                                    contentDescription = iconKey,
+                                    tint = if (isSelected) Color.White else TextSecondary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0x0C000000))
+                            .clickable { isAnnouncement = !isAnnouncement }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "Announcement Channel",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "Only Staff/Developers can post messages",
+                                fontSize = 10.sp,
+                                color = TextSecondary
+                            )
+                        }
+                        Switch(
+                            checked = isAnnouncement,
+                            onCheckedChange = { isAnnouncement = it }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Button(
+                        onClick = {
+                            val cleanName = channelName.trim()
+                            if (cleanName.isNotBlank()) {
+                                onCreateChannel(
+                                    Channel(
+                                        id = cleanName,
+                                        name = cleanName,
+                                        topic = channelTopic.ifBlank { "Minecraft Bangladesh Community Channel" },
+                                        icon = selectedIcon,
+                                        isAnnouncement = isAnnouncement
+                                    )
+                                )
+                                channelName = ""
+                                channelTopic = ""
+                                isAnnouncement = false
+                            }
+                        },
+                        enabled = channelName.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Create Channel", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+                }
+            }
+        }
+
+        // Active Channels List Section
+        item {
+            Text(
+                text = "ACTIVE CHANNELS (${channels.size})",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextMuted,
+                letterSpacing = 0.5.sp
+            )
+        }
+
+        if (channels.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No channels in database. Create your first channel above!",
+                        fontSize = 12.sp,
+                        color = TextMuted
+                    )
+                }
+            }
+        } else {
+            items(channels, key = { it.id }) { channel ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFF8FAFC))
+                        .border(1.dp, Color(0x18000000), RoundedCornerShape(16.dp))
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(EmeraldPrimary.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = getChannelIcon(channel.id, channel.icon),
+                                    contentDescription = null,
+                                    tint = EmeraldDark,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "# ${channel.name}",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
+                                    )
+                                    if (channel.isAnnouncement) {
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(Color(0x20F59E0B))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(
+                                                text = "Announce",
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFFD97706)
+                                            )
+                                        }
+                                    }
+                                }
+                                Text(
+                                    text = channel.topic ?: "ID: ${channel.id}",
+                                    fontSize = 11.sp,
+                                    color = TextSecondary,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        IconButton(
+                            onClick = { onDeleteChannel(channel.id) },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(Color(0x1AEF4444))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteOutline,
+                                contentDescription = "Delete",
+                                tint = Color(0xFFDC2626),
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
                     }
                 }

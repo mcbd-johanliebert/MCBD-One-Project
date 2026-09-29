@@ -21,9 +21,13 @@ data class Channel(
     val id: String,
     val name: String,
     val topic: String? = null,
-    val icon: String,
+    val icon: String = "chat",
     @SerialName("is_announcement") val isAnnouncement: Boolean = false
-)
+) {
+    companion object {
+        val default = Channel("general", "general", "General Minecraft Bangladesh chat", "chat", false)
+    }
+}
 
 @Serializable
 data class ChatMessage(

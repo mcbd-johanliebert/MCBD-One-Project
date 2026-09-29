@@ -27,6 +27,8 @@ begin
   -- Channels policies
   drop policy if exists "Allow all users to read channels" on public.channels;
   drop policy if exists "Allow insert on channels" on public.channels;
+  drop policy if exists "Allow update on channels" on public.channels;
+  drop policy if exists "Allow delete on channels" on public.channels;
 
   -- Messages policies
   drop policy if exists "Allow all users to read messages" on public.messages;
@@ -162,6 +164,8 @@ create policy "Allow users to insert/update their profile" on public.profiles fo
 -- CHANNELS POLICIES
 create policy "Allow all users to read channels" on public.channels for select using (true);
 create policy "Allow insert on channels" on public.channels for insert with check (true);
+create policy "Allow update on channels" on public.channels for update using (true);
+create policy "Allow delete on channels" on public.channels for delete using (true);
 
 -- MESSAGES POLICIES
 create policy "Allow all users to read messages" on public.messages for select using (true);
@@ -300,23 +304,12 @@ grant execute on function public.get_database_stats() to anon, authenticated;
 -- -------------------------------------------------------------------------
 -- 6. SEED INITIAL DATA (VERSION 1.0.1)
 -- -------------------------------------------------------------------------
--- Official Community Channels
-insert into public.channels (id, name, topic, icon, is_announcement) values
-('announcements', 'announcements', 'অফিশিয়াল বিডি টুর্নামেন্ট ও সার্ভার আপডেট', 'campaign', true),
-('general', 'general-chat', 'বাংলাদেশি মাইনক্রাফটারদের আড্ডা ও খোশগল্প', 'chat', false),
-('pvp-bedwars', 'pvp-and-bedwars', 'বেডওয়ার্স স্কোয়াড ও পিভিপি ট্রিক্স', 'shield', false),
-('builds-redstone', 'builds-and-redstone', 'অসাধারণ বিল্ড ও রেডস্টোন মেশিনারি শেয়ার', 'architecture', false),
-('bd-servers', 'bd-server-ips', 'বাংলাদেশি সেরা সার্ভার আইপি ও লিস্ট', 'dns', false)
-on conflict (id) do update set
-  name = excluded.name,
-  topic = excluded.topic,
-  icon = excluded.icon,
-  is_announcement = excluded.is_announcement;
+-- Channels are managed directly from the Developer Panel (clean fresh start)
 
 -- Top Verified Bangladeshi Minecraft Servers
 insert into public.servers (name, ip_address, port, gamemode, version, online_players, max_players, ping_ms, verified, description) values
 ('BD-Minecraft Community', 'mc.bd-mc.com', 25565, 'Survival / SMP', '1.20 - 1.21', 168, 500, 24, true, 'বাংলাদেশের অন্যতম জনপ্রিয় ও সুরক্ষিত সারভাইভাল এসএমপি সার্ভার। কাস্টম কোয়েস্ট ও ইকোনমি সুবিধা রয়েছে।'),
-('BanglaCraft Network', 'play.banglacraft.net', 25565, 'Bedwars / Skywars', '1.8.x - 1.21.x', 312, 1000, 28, true, 'বিডির শীর্ষস্থানীয় পিভিপি নেটওয়ার্ক। আল্ট্রা-লো পিং ও কম্পিটিটিভ টুর্নামেন্ট লিডারবোর্ড।'),
+('BanglaCraft Network', 'play.banglacraft.net', 25565, 'Bedwars / Skywars', '1.8.x - 1.21.x', 312, 1000, 28, true, 'বিডির শীর্ষস্থানীয় পিভিপি নেটওয়ার্ক। আল্ট্রা-লো পিং ও কম্পিটিটিভ লিডারবোর্ড।'),
 ('Bengal SMP', 'smp.bengalmc.com', 25565, 'Lifesteal / Hardcore', '1.21.x', 94, 300, 32, true, 'অ্যাড্রেনালাইন রাশ লাইফস্টিল মেকানিক্স ও পিভিপি অ্যারেনা। হার্ডকোর প্লেয়ারদের জন্য আদর্শ।'),
 ('Dhaka Pixelverse', 'play.dhakapixel.com', 25565, 'Survival / Economy', '1.20+', 75, 250, 36, true, 'কমিউনিটি ফ্রেন্ডলি বিল্ডারদের জন্য পিভিপি-মুক্ত শান্ত নিরিবিলি পরিবেশ ও রিয়েল এস্টেট সিস্টেম।');
 

@@ -46,7 +46,7 @@ val ASSIGNABLE_ROLES = listOf(
         id = "Executive",
         name = "Executive",
         icon = Icons.Default.WorkspacePremium,
-        description = "Executive board, tournament management & senior leadership",
+        description = "Executive board, community leadership & server management",
         primaryColor = Color(0xFF7C3AED)
     ),
     RoleOption(
