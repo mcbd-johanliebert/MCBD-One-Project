@@ -182,12 +182,16 @@ fun ChatRoomScreen(
                 items(messages, key = { it.id }) { msg ->
                     val isCurrent = (currentUser != null && msg.userId == currentUser?.id) ||
                             (msg.userName == currentUser?.fullName)
+                    val isDevOrAdmin = chatRepository.isDeveloperOrAdmin()
                     ChatMessageBubble(
                         message = msg,
                         isCurrentUser = isCurrent,
                         onReactionClick = { reactionKey ->
                             chatRepository.addReaction(msg.id, reactionKey)
-                        }
+                        },
+                        onDeleteMessage = if (isDevOrAdmin || isCurrent) {
+                            { msgId -> scope.launch { chatRepository.deleteMessage(msgId) } }
+                        } else null
                     )
                 }
             }

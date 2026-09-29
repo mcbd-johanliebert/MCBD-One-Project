@@ -33,10 +33,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mcbdone.app.data.model.MinecraftServer
 import com.mcbdone.app.data.repository.ChatRepository
+import com.mcbdone.app.ui.components.AdminControlCenterDialog
 import com.mcbdone.app.ui.components.GlassButton
 import com.mcbdone.app.ui.components.GlassTopBar
 import com.mcbdone.app.ui.components.ResponsiveScreenContainer
 import com.mcbdone.app.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun ServerListScreen(
@@ -44,7 +46,10 @@ fun ServerListScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val servers by chatRepository.servers.collectAsState()
+    val isDev = chatRepository.isDeveloperOrAdmin()
+    var showAdminCenter by remember { mutableStateOf(false) }
 
     AmbientGlassBackground(modifier = modifier) {
         ResponsiveScreenContainer(maxContentWidth = 860.dp) { isTablet, _ ->
@@ -55,7 +60,34 @@ fun ServerListScreen(
             ) {
                 GlassTopBar(
                     title = "BD Server Hub",
-                    subtitle = "বাংলাদেশি লো-পিং সার্ভার তালিকা"
+                    subtitle = "বাংলাদেশি লো-পিং সার্ভার তালিকা",
+                    actions = {
+                        if (isDev) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFF0284C7))
+                                    .clickable { showAdminCenter = true }
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Manage Servers",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Add / Manage",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
                 )
 
                 if (isTablet) {
@@ -66,14 +98,27 @@ fun ServerListScreen(
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        items(servers) { server ->
+                        items(servers, key = { it.id }) { server ->
                             ServerCard(
                                 server = server,
+                                isDeveloper = isDev,
                                 onCopyIp = {
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                     val clip = ClipData.newPlainText("Minecraft IP", server.ipAddress)
                                     clipboard.setPrimaryClip(clip)
                                     Toast.makeText(context, "${server.ipAddress} কপি করা হয়েছে!", Toast.LENGTH_SHORT).show()
+                                },
+                                onDeleteServer = {
+                                    scope.launch {
+                                        chatRepository.deleteServer(server.id)
+                                        Toast.makeText(context, "সার্ভার মুছে ফেলা হয়েছে", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                onToggleVerified = {
+                                    scope.launch {
+                                        chatRepository.toggleServerVerified(server)
+                                        Toast.makeText(context, "Verified স্ট্যাটাস পরিবর্তন হয়েছে", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             )
                         }
@@ -171,18 +216,38 @@ fun ServerListScreen(
                     }
                 }
 
-                items(servers) { server ->
+                items(servers, key = { it.id }) { server ->
                     ServerCard(
                         server = server,
+                        isDeveloper = isDev,
                         onCopyIp = {
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             val clip = ClipData.newPlainText("Minecraft IP", server.ipAddress)
                             clipboard.setPrimaryClip(clip)
                             Toast.makeText(context, "${server.ipAddress} কপি করা হয়েছে!", Toast.LENGTH_SHORT).show()
+                        },
+                        onDeleteServer = {
+                            scope.launch {
+                                chatRepository.deleteServer(server.id)
+                                Toast.makeText(context, "সার্ভার মুছে ফেলা হয়েছে", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onToggleVerified = {
+                            scope.launch {
+                                chatRepository.toggleServerVerified(server)
+                                Toast.makeText(context, "Verified স্ট্যাটাস পরিবর্তন হয়েছে", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     )
                 }
                     }
+                }
+
+                if (showAdminCenter) {
+                    AdminControlCenterDialog(
+                        chatRepository = chatRepository,
+                        onDismiss = { showAdminCenter = false }
+                    )
                 }
             }
         }
@@ -192,7 +257,10 @@ fun ServerListScreen(
 @Composable
 private fun ServerCard(
     server: MinecraftServer,
-    onCopyIp: () -> Unit
+    isDeveloper: Boolean = false,
+    onCopyIp: () -> Unit,
+    onDeleteServer: (() -> Unit)? = null,
+    onToggleVerified: (() -> Unit)? = null
 ) {
     Box(
         modifier = Modifier
@@ -309,25 +377,75 @@ private fun ServerCard(
                     }
 
                     Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(EmeraldPrimary)
-                            .padding(horizontal = 10.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.ContentCopy,
-                            contentDescription = "Copy",
-                            tint = Color.White,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Copy",
-                            color = Color.White,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        if (isDeveloper && onToggleVerified != null) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (server.verified) Color(0x200284C7) else Color(0x15000000))
+                                    .clickable { onToggleVerified() }
+                                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = if (server.verified) Icons.Default.Verified else Icons.Default.CheckCircle,
+                                        contentDescription = "Toggle Verified",
+                                        tint = if (server.verified) Color(0xFF0284C7) else TextMuted,
+                                        modifier = Modifier.size(13.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    Text(
+                                        text = if (server.verified) "Verified" else "Unverified",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (server.verified) Color(0xFF0284C7) else TextMuted
+                                    )
+                                }
+                            }
+                        }
+
+                        if (isDeveloper && onDeleteServer != null) {
+                            Box(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0x1AEF4444))
+                                    .clickable { onDeleteServer() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DeleteOutline,
+                                    contentDescription = "Delete Server",
+                                    tint = Color(0xFFDC2626),
+                                    modifier = Modifier.size(15.dp)
+                                )
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(EmeraldPrimary)
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ContentCopy,
+                                contentDescription = "Copy",
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Copy",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }

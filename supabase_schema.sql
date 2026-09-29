@@ -35,16 +35,25 @@ begin
   drop policy if exists "Allow insert messages" on public.messages;
   drop policy if exists "Allow update reactions" on public.messages;
 
+  -- Profiles policies
+  drop policy if exists "Allow delete on profiles" on public.profiles;
+
   -- Servers policies
   drop policy if exists "Allow all users to read servers" on public.servers;
   drop policy if exists "Allow insert servers" on public.servers;
+  drop policy if exists "Allow update on servers" on public.servers;
+  drop policy if exists "Allow delete on servers" on public.servers;
 
   -- Showcase policies
   drop policy if exists "Allow all users to read showcase" on public.showcase_posts;
   drop policy if exists "Allow insert showcase" on public.showcase_posts;
+  drop policy if exists "Allow update on showcase" on public.showcase_posts;
+  drop policy if exists "Allow delete on showcase" on public.showcase_posts;
 
   -- App versions policies
   drop policy if exists "Allow all users to read app_versions" on public.app_versions;
+  drop policy if exists "Allow insert on app_versions" on public.app_versions;
+  drop policy if exists "Allow update on app_versions" on public.app_versions;
 exception when others then
   null; -- Ignore if tables don't exist yet
 end $$;
@@ -160,6 +169,7 @@ alter table public.app_versions enable row level security;
 -- PROFILES POLICIES
 create policy "Allow all users to read profiles" on public.profiles for select using (true);
 create policy "Allow users to insert/update their profile" on public.profiles for all using (true) with check (true);
+create policy "Allow delete on profiles" on public.profiles for delete using (true);
 
 -- CHANNELS POLICIES
 create policy "Allow all users to read channels" on public.channels for select using (true);
@@ -176,13 +186,19 @@ create policy "Allow delete on messages" on public.messages for delete using (tr
 -- SERVERS POLICIES
 create policy "Allow all users to read servers" on public.servers for select using (true);
 create policy "Allow insert servers" on public.servers for insert with check (true);
+create policy "Allow update on servers" on public.servers for update using (true);
+create policy "Allow delete on servers" on public.servers for delete using (true);
 
 -- SHOWCASE POLICIES
 create policy "Allow all users to read showcase" on public.showcase_posts for select using (true);
 create policy "Allow insert showcase" on public.showcase_posts for insert with check (true);
+create policy "Allow update on showcase" on public.showcase_posts for update using (true);
+create policy "Allow delete on showcase" on public.showcase_posts for delete using (true);
 
 -- APP VERSIONS POLICIES
 create policy "Allow all users to read app_versions" on public.app_versions for select using (true);
+create policy "Allow insert on app_versions" on public.app_versions for insert with check (true);
+create policy "Allow update on app_versions" on public.app_versions for update using (true);
 
 -- -------------------------------------------------------------------------
 -- 4. GOOGLE AUTH SYNC TRIGGER

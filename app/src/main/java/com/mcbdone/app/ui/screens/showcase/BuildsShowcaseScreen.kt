@@ -27,16 +27,19 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import android.widget.Toast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.mcbdone.app.data.model.ShowcaseItem
 import com.mcbdone.app.data.repository.ChatRepository
+import com.mcbdone.app.ui.components.AdminControlCenterDialog
 import com.mcbdone.app.ui.components.GlassTopBar
 import com.mcbdone.app.ui.components.MinecraftAvatar
 import com.mcbdone.app.ui.components.ResponsiveScreenContainer
 import com.mcbdone.app.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun BuildsShowcaseScreen(
@@ -44,7 +47,10 @@ fun BuildsShowcaseScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val showcaseItems by chatRepository.showcase.collectAsState()
+    val isDev = chatRepository.isDeveloperOrAdmin()
+    var showAdminCenter by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("All") }
     val categories = listOf("All", "Mega Build", "Redstone Farm", "Survival", "Pixel Art")
 
@@ -57,7 +63,34 @@ fun BuildsShowcaseScreen(
             ) {
                 GlassTopBar(
                     title = "Builds & Redstone",
-                    subtitle = "বাংলাদেশি মাইনক্রাফটারদের সৃষ্টিশীল কাজ"
+                    subtitle = "বাংলাদেশি মাইনক্রাফটারদের সৃষ্টিশীল কাজ",
+                    actions = {
+                        if (isDev) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFF0284C7))
+                                    .clickable { showAdminCenter = true }
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Manage Builds",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Add / Manage",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
                 )
 
             // Category Filter Pills
@@ -141,8 +174,17 @@ fun BuildsShowcaseScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(filtered) { item ->
-                        ShowcaseCard(item = item)
+                    items(filtered, key = { it.id }) { item ->
+                        ShowcaseCard(
+                            item = item,
+                            isDeveloper = isDev,
+                            onDeleteBuild = {
+                                scope.launch {
+                                    chatRepository.deleteShowcase(item.id)
+                                    Toast.makeText(context, "শোকেস মুছে ফেলা হয়েছে", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
                     }
                 }
             } else {
@@ -151,10 +193,26 @@ fun BuildsShowcaseScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(filtered) { item ->
-                        ShowcaseCard(item = item)
+                    items(filtered, key = { it.id }) { item ->
+                        ShowcaseCard(
+                            item = item,
+                            isDeveloper = isDev,
+                            onDeleteBuild = {
+                                scope.launch {
+                                    chatRepository.deleteShowcase(item.id)
+                                    Toast.makeText(context, "শোকেস মুছে ফেলা হয়েছে", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
                     }
                 }
+            }
+
+            if (showAdminCenter) {
+                AdminControlCenterDialog(
+                    chatRepository = chatRepository,
+                    onDismiss = { showAdminCenter = false }
+                )
             }
         }
         }
@@ -162,7 +220,11 @@ fun BuildsShowcaseScreen(
 }
 
 @Composable
-private fun ShowcaseCard(item: ShowcaseItem) {
+private fun ShowcaseCard(
+    item: ShowcaseItem,
+    isDeveloper: Boolean = false,
+    onDeleteBuild: (() -> Unit)? = null
+) {
     var isLiked by remember { mutableStateOf(false) }
     var likes by remember { mutableIntStateOf(item.likesCount) }
 
@@ -213,6 +275,25 @@ private fun ShowcaseCard(item: ShowcaseItem) {
                         fontWeight = FontWeight.SemiBold,
                         color = EmeraldDark
                     )
+                }
+
+                if (isDeveloper && onDeleteBuild != null) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x1AEF4444))
+                            .clickable { onDeleteBuild() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = "Delete Build",
+                            tint = Color(0xFFDC2626),
+                            modifier = Modifier.size(15.dp)
+                        )
+                    }
                 }
             }
 

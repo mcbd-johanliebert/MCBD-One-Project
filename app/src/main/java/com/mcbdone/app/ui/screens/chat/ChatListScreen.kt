@@ -306,51 +306,6 @@ fun ChatListScreen(
                         }
                     }
                 }
-
-                // Community Events Glass Banner
-                item {
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .shadow(6.dp, RoundedCornerShape(22.dp), spotColor = EmeraldPrimary.copy(alpha = 0.2f))
-                            .clip(RoundedCornerShape(22.dp))
-                            .background(
-                                Brush.horizontalGradient(
-                                    listOf(
-                                        Color(0xE6FFFFFF),
-                                        Color(0xD9E6F9F0)
-                                    )
-                                )
-                            )
-                            .glassShimmer()
-                            .border(1.2.dp, GlassBorderGradient, RoundedCornerShape(22.dp))
-                            .padding(16.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.EmojiEvents,
-                                contentDescription = null,
-                                tint = Color(0xFFD97706),
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "MCBD Bedwars Championship 2026",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp,
-                                    color = TextPrimary
-                                )
-                                Text(
-                                    text = "রেজিস্ট্রেশন চলছে • প্রাইজপুল ৫০,০০০ ডায়মন্ড ও টি-শার্ট",
-                                    fontSize = 11.sp,
-                                    color = EmeraldDark
-                                )
-                            }
-                        }
-                    }
-                }
             }
         }
 

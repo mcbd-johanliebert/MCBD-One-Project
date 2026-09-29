@@ -317,6 +317,146 @@ class SupabaseManager(context: Context) {
         fallbackServers
     }
 
+    suspend fun deleteMessage(messageId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/messages?id=eq.$messageId"
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(Unit)
+                else Result.failure(Exception("Failed to delete message: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun createServer(server: MinecraftServer): Result<MinecraftServer> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/servers"
+            val body = json.encodeToString(server)
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .addHeader("Prefer", "resolution=merge-duplicates")
+                .addHeader("Content-Type", "application/json")
+                .post(body.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(server)
+                else Result.failure(Exception("Failed to create server: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteServer(serverId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/servers?id=eq.$serverId"
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(Unit)
+                else Result.failure(Exception("Failed to delete server: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateServer(server: MinecraftServer): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/servers?id=eq.${server.id}"
+            val body = json.encodeToString(server)
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .addHeader("Content-Type", "application/json")
+                .patch(body.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(Unit)
+                else Result.failure(Exception("Failed to update server: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun createShowcase(item: ShowcaseItem): Result<ShowcaseItem> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/showcase_posts"
+            val body = json.encodeToString(item)
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .addHeader("Content-Type", "application/json")
+                .post(body.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(item)
+                else Result.failure(Exception("Failed to create showcase: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteShowcase(itemId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/showcase_posts?id=eq.$itemId"
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(Unit)
+                else Result.failure(Exception("Failed to delete showcase: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteUserProfile(userId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/profiles?id=eq.$userId"
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(Unit)
+                else Result.failure(Exception("Failed to delete profile: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun fetchShowcase(): List<ShowcaseItem> = withContext(Dispatchers.IO) {
         try {
             val url = "$baseUrl/rest/v1/showcase_posts?select=*&order=likes_count.desc"

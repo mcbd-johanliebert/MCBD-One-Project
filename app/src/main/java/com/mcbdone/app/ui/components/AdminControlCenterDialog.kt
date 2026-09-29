@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +30,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.mcbdone.app.data.model.Channel
 import com.mcbdone.app.data.model.DatabaseStorageStats
+import com.mcbdone.app.data.model.MinecraftServer
+import com.mcbdone.app.data.model.ShowcaseItem
 import com.mcbdone.app.data.model.UserProfile
 import com.mcbdone.app.data.repository.ChatRepository
 import com.mcbdone.app.ui.theme.*
@@ -42,8 +45,10 @@ fun AdminControlCenterDialog(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var selectedTab by remember { mutableIntStateOf(0) } // 0: Storage, 1: Channels, 2: Badges, 3: Quick Broadcast
+    var selectedTab by remember { mutableIntStateOf(0) } // 0: Channels, 1: Servers, 2: Showcase, 3: Staff, 4: Storage, 5: Broadcast
     val channels by chatRepository.channels.collectAsState()
+    val servers by chatRepository.servers.collectAsState()
+    val showcaseItems by chatRepository.showcase.collectAsState()
     val currentUser by chatRepository.currentUser.collectAsState()
     var storageStats by remember { mutableStateOf(DatabaseStorageStats()) }
     var isLoadingStats by remember { mutableStateOf(true) }
@@ -53,6 +58,7 @@ fun AdminControlCenterDialog(
     var searchQuery by remember { mutableStateOf("") }
 
     var targetUserForRole by remember { mutableStateOf<UserProfile?>(null) }
+    var userToDelete by remember { mutableStateOf<UserProfile?>(null) }
     var showPurgeConfirm by remember { mutableStateOf(false) }
     var showClearChannelsConfirm by remember { mutableStateOf(false) }
 
@@ -66,9 +72,9 @@ fun AdminControlCenterDialog(
         isLoadingStats = false
     }
 
-    // Load users when switching to Badges tab (tab 2)
+    // Load users when switching to Staff tab (tab 3)
     LaunchedEffect(selectedTab) {
-        if (selectedTab == 2 && usersList.isEmpty()) {
+        if (selectedTab == 3 && usersList.isEmpty()) {
             isLoadingUsers = true
             usersList = chatRepository.fetchAllUsers()
             isLoadingUsers = false
@@ -88,7 +94,7 @@ fun AdminControlCenterDialog(
         ) {
             Box(
                 modifier = Modifier
-                    .widthIn(max = 680.dp)
+                    .widthIn(max = 720.dp)
                     .fillMaxWidth()
                     .fillMaxHeight(0.92f)
                     .shadow(24.dp, RoundedCornerShape(28.dp), spotColor = Color(0x30000000))
@@ -178,8 +184,8 @@ fun AdminControlCenterDialog(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Segmented Tabs Pill (4 tabs)
-                    Row(
+                    // Scrollable Segmented Tabs Pill (6 Full Tabs)
+                    LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(16.dp))
@@ -187,54 +193,61 @@ fun AdminControlCenterDialog(
                             .padding(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        TabPillButton(
-                            title = "Storage",
-                            icon = Icons.Default.PieChart,
-                            selected = selectedTab == 0,
-                            modifier = Modifier.weight(1f),
-                            onClick = { selectedTab = 0 }
-                        )
-                        TabPillButton(
-                            title = "Channels",
-                            icon = Icons.Default.Dns,
-                            selected = selectedTab == 1,
-                            modifier = Modifier.weight(1f),
-                            onClick = { selectedTab = 1 }
-                        )
-                        TabPillButton(
-                            title = "Staff",
-                            icon = Icons.Default.MilitaryTech,
-                            selected = selectedTab == 2,
-                            modifier = Modifier.weight(1f),
-                            onClick = { selectedTab = 2 }
-                        )
-                        TabPillButton(
-                            title = "Broadcast",
-                            icon = Icons.Default.Campaign,
-                            selected = selectedTab == 3,
-                            modifier = Modifier.weight(1f),
-                            onClick = { selectedTab = 3 }
-                        )
+                        item {
+                            TabPillButton(
+                                title = "Channels",
+                                icon = Icons.Default.Tag,
+                                selected = selectedTab == 0,
+                                onClick = { selectedTab = 0 }
+                            )
+                        }
+                        item {
+                            TabPillButton(
+                                title = "Servers",
+                                icon = Icons.Default.Dns,
+                                selected = selectedTab == 1,
+                                onClick = { selectedTab = 1 }
+                            )
+                        }
+                        item {
+                            TabPillButton(
+                                title = "Showcase",
+                                icon = Icons.Default.Diamond,
+                                selected = selectedTab == 2,
+                                onClick = { selectedTab = 2 }
+                            )
+                        }
+                        item {
+                            TabPillButton(
+                                title = "Staff & Users",
+                                icon = Icons.Default.MilitaryTech,
+                                selected = selectedTab == 3,
+                                onClick = { selectedTab = 3 }
+                            )
+                        }
+                        item {
+                            TabPillButton(
+                                title = "Storage Gauge",
+                                icon = Icons.Default.PieChart,
+                                selected = selectedTab == 4,
+                                onClick = { selectedTab = 4 }
+                            )
+                        }
+                        item {
+                            TabPillButton(
+                                title = "Broadcast",
+                                icon = Icons.Default.Campaign,
+                                selected = selectedTab == 5,
+                                onClick = { selectedTab = 5 }
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
                     // Tab Content
                     when (selectedTab) {
-                        0 -> StorageMonitorTab(
-                            stats = storageStats,
-                            isLoading = isLoadingStats,
-                            onRefresh = {
-                                scope.launch {
-                                    isLoadingStats = true
-                                    storageStats = chatRepository.fetchStorageStats()
-                                    isLoadingStats = false
-                                    Toast.makeText(context, "Realtime stats updated!", Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            onPurgeMessages = { showPurgeConfirm = true }
-                        )
-                        1 -> ChannelsManagerTab(
+                        0 -> ChannelsManagerTab(
                             channels = channels,
                             onCreateChannel = { newChannel ->
                                 scope.launch {
@@ -259,12 +272,61 @@ fun AdminControlCenterDialog(
                             },
                             onClearAll = { showClearChannelsConfirm = true }
                         )
-                        2 -> StaffBadgesTab(
+                        1 -> ServersManagerTab(
+                            servers = servers,
+                            onCreateServer = { newServer ->
+                                scope.launch {
+                                    val res = chatRepository.createServer(newServer)
+                                    if (res.isSuccess) {
+                                        Toast.makeText(context, "সার্ভার যুক্ত হয়েছে!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "সার্ভার যোগ করতে ব্যর্থ", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            },
+                            onDeleteServer = { serverId ->
+                                scope.launch {
+                                    val res = chatRepository.deleteServer(serverId)
+                                    if (res.isSuccess) {
+                                        Toast.makeText(context, "সার্ভার মুছে ফেলা হয়েছে!", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            },
+                            onToggleVerified = { server ->
+                                scope.launch {
+                                    chatRepository.toggleServerVerified(server)
+                                    Toast.makeText(context, "Verified স্ট্যাটাস আপডেট হয়েছে!", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
+                        2 -> ShowcaseManagerTab(
+                            showcaseItems = showcaseItems,
+                            onCreateShowcase = { newItem ->
+                                scope.launch {
+                                    val res = chatRepository.createShowcase(newItem)
+                                    if (res.isSuccess) {
+                                        Toast.makeText(context, "শোকেস যুক্ত হয়েছে!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "শোকেস যোগ করতে ব্যর্থ", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            },
+                            onDeleteShowcase = { itemId ->
+                                scope.launch {
+                                    val res = chatRepository.deleteShowcase(itemId)
+                                    if (res.isSuccess) {
+                                        Toast.makeText(context, "শোকেস পোস্ট মুছে ফেলা হয়েছে!", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        )
+                        3 -> StaffBadgesTab(
                             users = usersList,
                             isLoading = isLoadingUsers,
                             searchQuery = searchQuery,
                             onSearchChange = { searchQuery = it },
                             onSelectUser = { targetUserForRole = it },
+                            onDeleteUser = { userToDelete = it },
                             onRefreshUsers = {
                                 scope.launch {
                                     isLoadingUsers = true
@@ -273,7 +335,20 @@ fun AdminControlCenterDialog(
                                 }
                             }
                         )
-                        3 -> QuickActionsTab(
+                        4 -> StorageMonitorTab(
+                            stats = storageStats,
+                            isLoading = isLoadingStats,
+                            onRefresh = {
+                                scope.launch {
+                                    isLoadingStats = true
+                                    storageStats = chatRepository.fetchStorageStats()
+                                    isLoadingStats = false
+                                    Toast.makeText(context, "Realtime stats updated!", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            onPurgeMessages = { showPurgeConfirm = true }
+                        )
+                        5 -> QuickActionsTab(
                             broadcastText = broadcastText,
                             onBroadcastChange = { broadcastText = it },
                             isBroadcasting = isBroadcasting,
@@ -405,6 +480,53 @@ fun AdminControlCenterDialog(
                 },
                 dismissButton = {
                     TextButton(onClick = { showClearChannelsConfirm = false }) {
+                        Text("Cancel", color = TextPrimary)
+                    }
+                }
+            )
+        }
+
+        // Delete User Confirmation Dialog
+        userToDelete?.let { user ->
+            AlertDialog(
+                onDismissRequest = { userToDelete = null },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.PersonRemove,
+                        contentDescription = null,
+                        tint = Color(0xFFDC2626)
+                    )
+                },
+                title = { Text("Delete User Profile?", fontWeight = FontWeight.Bold) },
+                text = {
+                    Text(
+                        "Are you sure you want to delete ${user.fullName} (${user.minecraftIgn}) from the database? This action cannot be undone.",
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val target = user
+                            userToDelete = null
+                            scope.launch {
+                                val res = chatRepository.deleteUserProfile(target.id)
+                                if (res.isSuccess) {
+                                    usersList = usersList.filter { it.id != target.id }
+                                    Toast.makeText(context, "${target.fullName} deleted!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Failed to delete user", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
+                    ) {
+                        Text("Delete Now", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { userToDelete = null }) {
                         Text("Cancel", color = TextPrimary)
                     }
                 }
@@ -753,6 +875,7 @@ private fun StaffBadgesTab(
     searchQuery: String,
     onSearchChange: (String) -> Unit,
     onSelectUser: (UserProfile) -> Unit,
+    onDeleteUser: (UserProfile) -> Unit,
     onRefreshUsers: () -> Unit
 ) {
     val filteredUsers = remember(users, searchQuery) {
@@ -883,19 +1006,39 @@ private fun StaffBadgesTab(
                                 }
                             }
 
-                            Button(
-                                onClick = { onSelectUser(user) },
-                                shape = RoundedCornerShape(10.dp),
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(13.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Assign", fontSize = 11.sp)
+                                Button(
+                                    onClick = { onSelectUser(user) },
+                                    shape = RoundedCornerShape(10.dp),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(13.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Assign", fontSize = 11.sp)
+                                }
+
+                                IconButton(
+                                    onClick = { onDeleteUser(user) },
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0x1AEF4444))
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.DeleteOutline,
+                                        contentDescription = "Delete User",
+                                        tint = Color(0xFFDC2626),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -1394,6 +1537,516 @@ private fun ChannelsManagerTab(
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
                                 contentDescription = "Delete",
+                                tint = Color(0xFFDC2626),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ServersManagerTab(
+    servers: List<MinecraftServer>,
+    onCreateServer: (MinecraftServer) -> Unit,
+    onDeleteServer: (String) -> Unit,
+    onToggleVerified: (MinecraftServer) -> Unit
+) {
+    var serverName by remember { mutableStateOf("") }
+    var serverIp by remember { mutableStateOf("") }
+    var serverPort by remember { mutableStateOf("25565") }
+    var serverGamemode by remember { mutableStateOf("Survival / SMP") }
+    var serverVersion by remember { mutableStateOf("1.20 - 1.21") }
+    var serverDesc by remember { mutableStateOf("") }
+    var isVerified by remember { mutableStateOf(true) }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Create Server Card
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFFF8FAFC))
+                    .border(1.2.dp, Color(0x18000000), RoundedCornerShape(20.dp))
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.AddCircleOutline,
+                            contentDescription = null,
+                            tint = EmeraldPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Add New Minecraft Server",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(text = "SERVER NAME", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = serverName,
+                        onValueChange = { serverName = it },
+                        placeholder = { Text("e.g. MCBD Official SMP", fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(2f)) {
+                            Text(text = "IP ADDRESS / DOMAIN", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            OutlinedTextField(
+                                value = serverIp,
+                                onValueChange = { serverIp = it.trim() },
+                                placeholder = { Text("play.mcbd.net", fontSize = 12.sp) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = "PORT", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            OutlinedTextField(
+                                value = serverPort,
+                                onValueChange = { serverPort = it.filter { c -> c.isDigit() } },
+                                placeholder = { Text("25565", fontSize = 12.sp) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = "GAMEMODE", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            OutlinedTextField(
+                                value = serverGamemode,
+                                onValueChange = { serverGamemode = it },
+                                placeholder = { Text("SMP, Bedwars, Skyblock", fontSize = 12.sp) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = "VERSION", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            OutlinedTextField(
+                                value = serverVersion,
+                                onValueChange = { serverVersion = it },
+                                placeholder = { Text("1.20 - 1.21", fontSize = 12.sp) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(text = "DESCRIPTION", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = serverDesc,
+                        onValueChange = { serverDesc = it },
+                        placeholder = { Text("Bangladeshi low ping server with custom quests", fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0x0C000000))
+                            .clickable { isVerified = !isVerified }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(text = "Verified MCBD Server", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                            Text(text = "Displays official verified checkmark", fontSize = 10.sp, color = TextSecondary)
+                        }
+                        Switch(checked = isVerified, onCheckedChange = { isVerified = it })
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Button(
+                        onClick = {
+                            if (serverName.isNotBlank() && serverIp.isNotBlank()) {
+                                onCreateServer(
+                                    MinecraftServer(
+                                        name = serverName.trim(),
+                                        ipAddress = serverIp.trim(),
+                                        port = serverPort.toIntOrNull() ?: 25565,
+                                        gamemode = serverGamemode.ifBlank { "Survival" },
+                                        version = serverVersion.ifBlank { "1.20 - 1.21" },
+                                        description = serverDesc.trim(),
+                                        verified = isVerified
+                                    )
+                                )
+                                serverName = ""
+                                serverIp = ""
+                                serverDesc = ""
+                            }
+                        },
+                        enabled = serverName.isNotBlank() && serverIp.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Add Server", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+                }
+            }
+        }
+
+        // Active Servers List Section
+        item {
+            Text(
+                text = "ACTIVE SERVERS (${servers.size})",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextMuted,
+                letterSpacing = 0.5.sp
+            )
+        }
+
+        if (servers.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No servers listed. Add the first one above!", fontSize = 12.sp, color = TextMuted)
+                }
+            }
+        } else {
+            items(servers, key = { it.id }) { srv ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFF8FAFC))
+                        .border(1.dp, Color(0x18000000), RoundedCornerShape(16.dp))
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(text = srv.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                                if (srv.verified) {
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.Verified,
+                                        contentDescription = "Verified",
+                                        tint = Color(0xFF0284C7),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = "${srv.ipAddress}:${srv.port} • ${srv.gamemode} (${srv.version})",
+                                fontSize = 11.sp,
+                                color = TextSecondary
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            IconButton(
+                                onClick = { onToggleVerified(srv) },
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(if (srv.verified) Color(0x1A0284C7) else Color(0x15000000))
+                            ) {
+                                Icon(
+                                    imageVector = if (srv.verified) Icons.Default.Verified else Icons.Default.CheckCircle,
+                                    contentDescription = "Toggle Verified",
+                                    tint = if (srv.verified) Color(0xFF0284C7) else TextMuted,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+
+                            IconButton(
+                                onClick = { onDeleteServer(srv.id) },
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0x1AEF4444))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DeleteOutline,
+                                    contentDescription = "Delete Server",
+                                    tint = Color(0xFFDC2626),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShowcaseManagerTab(
+    showcaseItems: List<ShowcaseItem>,
+    onCreateShowcase: (ShowcaseItem) -> Unit,
+    onDeleteShowcase: (String) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("Mega Build") }
+    var imageUrl by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var authorIgn by remember { mutableStateOf("") }
+
+    val categories = listOf("Mega Build", "Redstone", "Survival Base", "Pixel Art", "Minigame", "Castle")
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Create Showcase Form Card
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFFF8FAFC))
+                    .border(1.2.dp, Color(0x18000000), RoundedCornerShape(20.dp))
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.AddCircleOutline,
+                            contentDescription = null,
+                            tint = EmeraldPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Add Showcase Build",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(text = "BUILD TITLE", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        placeholder = { Text("e.g. Lalbagh Fort in Minecraft", fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(text = "IMAGE DIRECT URL", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = imageUrl,
+                        onValueChange = { imageUrl = it.trim() },
+                        placeholder = { Text("https://images.unsplash.com/... or i.imgur.com/...", fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(text = "CREATOR IGN / NAME", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = authorIgn,
+                        onValueChange = { authorIgn = it },
+                        placeholder = { Text("e.g. Shakib_MCBD", fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(text = "CATEGORY", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(categories) { cat ->
+                            val isSelected = category == cat
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) EmeraldPrimary else Color(0x12000000))
+                                    .clickable { category = cat }
+                                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                            ) {
+                                Text(
+                                    text = cat,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) Color.White else TextSecondary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(text = "DESCRIPTION", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        placeholder = { Text("Details about the build, shaders, time spent...", fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Button(
+                        onClick = {
+                            if (title.isNotBlank() && imageUrl.isNotBlank()) {
+                                onCreateShowcase(
+                                    ShowcaseItem(
+                                        title = title.trim(),
+                                        imageUrl = imageUrl.trim(),
+                                        userName = authorIgn.ifBlank { "MCBD Builder" },
+                                        minecraftIgn = authorIgn.ifBlank { "MCBD_Player" },
+                                        category = category,
+                                        description = description.trim()
+                                    )
+                                )
+                                title = ""
+                                imageUrl = ""
+                                description = ""
+                            }
+                        },
+                        enabled = title.isNotBlank() && imageUrl.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Add Build", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+                }
+            }
+        }
+
+        // Active Showcase Items List
+        item {
+            Text(
+                text = "ACTIVE SHOWCASE POSTS (${showcaseItems.size})",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextMuted,
+                letterSpacing = 0.5.sp
+            )
+        }
+
+        if (showcaseItems.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No showcase builds listed yet. Add one above!", fontSize = 12.sp, color = TextMuted)
+                }
+            }
+        } else {
+            items(showcaseItems, key = { it.id }) { item ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFF8FAFC))
+                        .border(1.dp, Color(0x18000000), RoundedCornerShape(16.dp))
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = item.title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                            Text(
+                                text = "By ${item.userName} • ${item.category} • ❤️ ${item.likesCount}",
+                                fontSize = 11.sp,
+                                color = TextSecondary
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { onDeleteShowcase(item.id) },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(Color(0x1AEF4444))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteOutline,
+                                contentDescription = "Delete Showcase",
                                 tint = Color(0xFFDC2626),
                                 modifier = Modifier.size(16.dp)
                             )

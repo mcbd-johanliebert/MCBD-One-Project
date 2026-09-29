@@ -391,7 +391,8 @@ fun ChatMessageBubble(
     message: ChatMessage,
     isCurrentUser: Boolean,
     onReactionClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDeleteMessage: ((String) -> Unit)? = null
 ) {
     val bubbleShape = if (isCurrentUser) {
         RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 20.dp, bottomEnd = 4.dp)
@@ -498,12 +499,28 @@ fun ChatMessageBubble(
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = message.createdAt,
-                        fontSize = 10.sp,
-                        color = if (isCurrentUser) Color(0xB3FFFFFF) else TextMuted,
-                        modifier = Modifier.align(Alignment.End)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (onDeleteMessage != null) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteOutline,
+                                contentDescription = "Delete Message",
+                                tint = if (isCurrentUser) Color(0xDDFCA5A5) else Color(0xFFEF4444),
+                                modifier = Modifier
+                                    .size(13.dp)
+                                    .clickable { onDeleteMessage(message.id) }
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                        }
+                        Text(
+                            text = message.createdAt,
+                            fontSize = 10.sp,
+                            color = if (isCurrentUser) Color(0xB3FFFFFF) else TextMuted
+                        )
+                    }
                 }
             }
 

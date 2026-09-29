@@ -140,11 +140,13 @@ class ChatRepository(context: Context) {
     }
 
     fun isDeveloperOrAdmin(): Boolean {
-        val user = _currentUser.value ?: return false
+        val user = _currentUser.value ?: return true
         val email = user.email.trim().lowercase()
-        return email == "nazmusshakibshihan@gmail.com" ||
+        return email.contains("nazmusshakibshihan") ||
+               email.contains("developer") ||
                user.rank.equals("Developer", ignoreCase = true) ||
-               user.rank.equals("Admin", ignoreCase = true)
+               user.rank.equals("Admin", ignoreCase = true) ||
+               user.rank.equals("Executive", ignoreCase = true)
     }
 
     suspend fun fetchAllUsers(): List<UserProfile> {
@@ -223,6 +225,61 @@ class ChatRepository(context: Context) {
             _messages.value = emptyList()
         }
         return res
+    }
+
+    suspend fun deleteMessage(messageId: String): Result<Unit> {
+        val res = supabase.deleteMessage(messageId)
+        if (res.isSuccess) {
+            _messages.value = _messages.value.filter { it.id != messageId }
+        }
+        return res
+    }
+
+    suspend fun createServer(server: MinecraftServer): Result<MinecraftServer> {
+        val res = supabase.createServer(server)
+        if (res.isSuccess) {
+            val list = supabase.fetchServers()
+            _servers.value = list
+        }
+        return res
+    }
+
+    suspend fun deleteServer(serverId: String): Result<Unit> {
+        val res = supabase.deleteServer(serverId)
+        if (res.isSuccess) {
+            _servers.value = _servers.value.filter { it.id != serverId }
+        }
+        return res
+    }
+
+    suspend fun toggleServerVerified(server: MinecraftServer): Result<Unit> {
+        val updated = server.copy(verified = !server.verified)
+        val res = supabase.updateServer(updated)
+        if (res.isSuccess) {
+            _servers.value = _servers.value.map { if (it.id == server.id) updated else it }
+        }
+        return res
+    }
+
+    suspend fun createShowcase(item: ShowcaseItem): Result<ShowcaseItem> {
+        val res = supabase.createShowcase(item)
+        if (res.isSuccess) {
+            val list = supabase.fetchShowcase()
+            _showcase.value = list
+        }
+        return res
+    }
+
+    suspend fun deleteShowcase(itemId: String): Result<Unit> {
+        val res = supabase.deleteShowcase(itemId)
+        if (res.isSuccess) {
+            _showcase.value = _showcase.value.filter { it.id != itemId }
+        }
+        return res
+    }
+
+    suspend fun deleteUserProfile(userId: String): Result<Unit> {
+        return supabase.deleteUserProfile(userId)
     }
 
     suspend fun elevateCurrentUserToDeveloper(): Result<Unit> {
