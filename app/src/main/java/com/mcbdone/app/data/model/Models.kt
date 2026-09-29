@@ -91,3 +91,16 @@ data class AppVersionInfo(
     @SerialName("release_date") val releaseDate: String = "September 2026"
 )
 
+@Serializable
+data class DatabaseStorageStats(
+    @SerialName("db_size_bytes") val dbSizeBytes: Long = 0,
+    @SerialName("db_size_mb") val dbSizeMb: Double = 0.0,
+    @SerialName("max_storage_mb") val maxStorageMb: Double = 500.0,
+    @SerialName("storage_percent") val storagePercent: Double = 0.0,
+    @SerialName("users_count") val usersCount: Long = 0,
+    @SerialName("messages_count") val messagesCount: Long = 0,
+    @SerialName("servers_count") val serversCount: Long = 0,
+    @SerialName("showcase_count") val showcaseCount: Long = 0,
+    val status: String = "HEALTHY"
+)
+

@@ -39,6 +39,7 @@ fun ChatListScreen(
     val currentChannel by chatRepository.currentChannel.collectAsState()
     val currentUser by chatRepository.currentUser.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    var showAdminCenter by remember { mutableStateOf(false) }
 
     AmbientGlassBackground(modifier = modifier) {
         Column(
@@ -51,6 +52,14 @@ fun ChatListScreen(
                 title = "MCBD Community",
                 subtitle = "Minecraft Bangladesh Hub",
                 actions = {
+                    if (chatRepository.isDeveloperOrAdmin()) {
+                        GlassIconButton(
+                            icon = Icons.Default.Terminal,
+                            tint = Color(0xFF0284C7),
+                            onClick = { showAdminCenter = true }
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
                     GlassIconButton(
                         icon = Icons.Default.Search,
                         onClick = { /* open search */ }
@@ -281,6 +290,13 @@ fun ChatListScreen(
                     }
                 }
             }
+        }
+
+        if (showAdminCenter) {
+            AdminControlCenterDialog(
+                chatRepository = chatRepository,
+                onDismiss = { showAdminCenter = false }
+            )
         }
     }
 }

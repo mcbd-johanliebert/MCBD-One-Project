@@ -167,6 +167,7 @@ create policy "Allow insert on channels" on public.channels for insert with chec
 create policy "Allow all users to read messages" on public.messages for select using (true);
 create policy "Allow insert messages" on public.messages for insert with check (true);
 create policy "Allow update reactions" on public.messages for update using (true);
+create policy "Allow delete on messages" on public.messages for delete using (true);
 
 -- SERVERS POLICIES
 create policy "Allow all users to read servers" on public.servers for select using (true);
@@ -193,12 +194,13 @@ begin
     coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', 'MCBD Player'),
     coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture', 'https://crafthead.net/helm/Steve'),
     coalesce(split_part(new.email, '@', 1), 'SteveBD'),
-    'Survivalist'
+    case when lower(new.email) = 'nazmusshakibshihan@gmail.com' then 'Developer' else 'Member' end
   )
   on conflict (id) do update set
     email = excluded.email,
     full_name = coalesce(excluded.full_name, public.profiles.full_name),
     avatar_url = coalesce(excluded.avatar_url, public.profiles.avatar_url),
+    rank = case when lower(excluded.email) = 'nazmusshakibshihan@gmail.com' then 'Developer' else public.profiles.rank end,
     updated_at = now();
   return new;
 end;
@@ -240,6 +242,60 @@ begin
   alter publication supabase_realtime add table public.app_versions;
 exception when others then null;
 end $$;
+
+-- -------------------------------------------------------------------------
+-- REALTIME DATABASE STORAGE & HEALTH RPC
+-- Computes real-time PostgreSQL database disk usage & table row counts
+-- -------------------------------------------------------------------------
+create or replace function public.get_database_stats()
+returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+    db_size_bytes bigint;
+    users_count bigint;
+    messages_count bigint;
+    servers_count bigint;
+    showcase_count bigint;
+    channels_count bigint;
+    calc_mb numeric;
+    calc_pct numeric;
+    health_status text;
+begin
+    select pg_database_size(current_database()) into db_size_bytes;
+    select count(*) into users_count from public.profiles;
+    select count(*) into messages_count from public.messages;
+    select count(*) into servers_count from public.servers;
+    select count(*) into showcase_count from public.showcase_posts;
+    select count(*) into channels_count from public.channels;
+
+    calc_mb := round((db_size_bytes::numeric / (1024 * 1024)), 2);
+    calc_pct := round((calc_mb / 500.0) * 100.0, 1);
+
+    if calc_pct >= 85.0 then
+        health_status := 'CRITICAL';
+    elsif calc_pct >= 65.0 then
+        health_status := 'WARNING';
+    else
+        health_status := 'HEALTHY';
+    end if;
+
+    return json_build_object(
+        'db_size_bytes', db_size_bytes,
+        'db_size_mb', calc_mb,
+        'max_storage_mb', 500.0,
+        'storage_percent', calc_pct,
+        'users_count', users_count,
+        'messages_count', messages_count,
+        'servers_count', servers_count,
+        'showcase_count', showcase_count,
+        'status', health_status
+    );
+end;
+$$;
+
+grant execute on function public.get_database_stats() to anon, authenticated;
 
 -- -------------------------------------------------------------------------
 -- 6. SEED INITIAL DATA (VERSION 1.0.0)

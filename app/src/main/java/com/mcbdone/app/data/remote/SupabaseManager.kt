@@ -107,15 +107,19 @@ class SupabaseManager(context: Context) {
                     ?: "https://crafthead.net/helm/Steve"
 
                 val ign = fullName.replace(" ", "_").take(16)
+                val isDeveloper = email.trim().equals("nazmusshakibshihan@gmail.com", ignoreCase = true)
+                val defaultRank = if (isDeveloper) "Developer" else "Member"
+                val defaultBio = if (isDeveloper) "Lead Developer & System Architect" else "Minecraft Bangladesh Community Member"
+
                 val profile = UserProfile(
                     id = userId,
                     email = email,
                     fullName = fullName,
                     avatarUrl = avatar,
                     minecraftIgn = ign,
-                    rank = "Survivalist",
+                    rank = defaultRank,
                     status = "online",
-                    bio = "Minecraft Bangladesh Community Member"
+                    bio = defaultBio
                 )
 
                 currentSessionToken = accessToken
@@ -294,6 +298,138 @@ class SupabaseManager(context: Context) {
             Log.w("SupabaseManager", "Using fallback version info", e)
         }
         fallbackVersion
+    }
+
+    suspend fun fetchUsers(): List<UserProfile> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/profiles?select=*&order=created_at.desc"
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .get()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val body = response.body?.string().orEmpty()
+                    return@withContext json.decodeFromString<List<UserProfile>>(body)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("SupabaseManager", "fetchUsers error", e)
+        }
+        emptyList()
+    }
+
+    suspend fun updateUserRank(userId: String, newRank: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/profiles?id=eq.$userId"
+            val payload = """{"rank":"$newRank"}"""
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .addHeader("Content-Type", "application/json")
+                .patch(payload.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(Unit)
+                else Result.failure(Exception("Failed to update rank HTTP ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchDatabaseStats(): DatabaseStorageStats = withContext(Dispatchers.IO) {
+        // 1. Try PostgreSQL RPC
+        try {
+            val rpcUrl = "$baseUrl/rest/v1/rpc/get_database_stats"
+            val request = Request.Builder()
+                .url(rpcUrl)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .post("{}".toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val body = response.body?.string().orEmpty()
+                    if (body.isNotEmpty() && body.startsWith("{")) {
+                        return@withContext json.decodeFromString<DatabaseStorageStats>(body)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w("SupabaseManager", "RPC get_database_stats fallback", e)
+        }
+
+        // 2. Query table counts directly using Supabase count=exact
+        suspend fun countTable(table: String): Long {
+            return try {
+                val url = "$baseUrl/rest/v1/$table?select=id"
+                val req = Request.Builder()
+                    .url(url)
+                    .addHeader("apikey", anonKey)
+                    .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                    .addHeader("Range", "0-0")
+                    .addHeader("Prefer", "count=exact")
+                    .get()
+                    .build()
+                client.newCall(req).execute().use { res ->
+                    val cr = res.header("Content-Range")
+                    cr?.substringAfter("/")?.toLongOrNull() ?: 0L
+                }
+            } catch (_: Exception) { 0L }
+        }
+
+        val usersCount = countTable("profiles")
+        val messagesCount = countTable("messages")
+        val serversCount = countTable("servers")
+        val showcaseCount = countTable("showcase_posts")
+
+        val estimatedBytes = (usersCount * 4096) + (messagesCount * 1024) + (serversCount * 2048) + (showcaseCount * 4096) + 8388608 // ~8MB base catalog
+        val mb = Math.round((estimatedBytes / (1024.0 * 1024.0)) * 100.0) / 100.0
+        val maxMb = 500.0
+        val percent = Math.round(((mb / maxMb) * 100.0) * 10.0) / 10.0
+        val status = when {
+            percent >= 85.0 -> "CRITICAL"
+            percent >= 65.0 -> "WARNING"
+            else -> "HEALTHY"
+        }
+
+        DatabaseStorageStats(
+            dbSizeBytes = estimatedBytes,
+            dbSizeMb = mb,
+            maxStorageMb = maxMb,
+            storagePercent = percent,
+            usersCount = usersCount,
+            messagesCount = messagesCount,
+            serversCount = serversCount,
+            showcaseCount = showcaseCount,
+            status = status
+        )
+    }
+
+    suspend fun purgeOldMessages(): Result<Int> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/rest/v1/messages"
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", anonKey)
+                .addHeader("Authorization", "Bearer ${currentSessionToken ?: anonKey}")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) Result.success(1)
+                else Result.failure(Exception("Failed to delete messages HTTP ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     fun signOut() {

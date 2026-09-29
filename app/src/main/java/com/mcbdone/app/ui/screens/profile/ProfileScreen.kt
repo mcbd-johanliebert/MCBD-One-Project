@@ -45,6 +45,7 @@ fun ProfileScreen(
     var isEditing by remember { mutableStateOf(false) }
 
     var showVersionDialog by remember { mutableStateOf(false) }
+    var showAdminCenter by remember { mutableStateOf(false) }
     val latestVersion by chatRepository.latestVersion.collectAsState()
     val isUpdateAvailable by chatRepository.isUpdateAvailable.collectAsState()
 
@@ -186,6 +187,101 @@ fun ProfileScreen(
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Developer & Admin Special Access Card
+                if (chatRepository.isDeveloperOrAdmin()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .shadow(8.dp, RoundedCornerShape(22.dp), spotColor = Color(0x200284C7))
+                                .clip(RoundedCornerShape(22.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(Color(0xFFF0F9FF), Color(0xFFE0F2FE))
+                                    )
+                                )
+                                .border(1.2.dp, Color(0xFF0284C7).copy(alpha = 0.5f), RoundedCornerShape(22.dp))
+                                .padding(18.dp)
+                        ) {
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFF0284C7)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Terminal,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Column {
+                                            Text(
+                                                text = "Developer & Admin Access",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color(0xFF0369A1)
+                                            )
+                                            Text(
+                                                text = "Realtime Database Storage & Staff Badges",
+                                                fontSize = 11.sp,
+                                                color = Color(0xFF0284C7)
+                                            )
+                                        }
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(Color(0xFF0284C7).copy(alpha = 0.15f))
+                                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                                    ) {
+                                        Text(
+                                            text = "ROOT DEV",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = Color(0xFF0284C7)
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                Button(
+                                    onClick = { showAdminCenter = true },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
+                                    shape = RoundedCornerShape(14.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AdminPanelSettings,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Open Admin & Storage Control Center",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = Color.White
+                                    )
                                 }
                             }
                         }
@@ -344,6 +440,13 @@ fun ProfileScreen(
                 currentVersion = chatRepository.currentAppVersion,
                 versionInfo = latestVersion,
                 onDismiss = { showVersionDialog = false }
+            )
+        }
+
+        if (showAdminCenter) {
+            AdminControlCenterDialog(
+                chatRepository = chatRepository,
+                onDismiss = { showAdminCenter = false }
             )
         }
     }

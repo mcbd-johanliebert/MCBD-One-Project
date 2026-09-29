@@ -138,4 +138,56 @@ class ChatRepository(context: Context) {
         supabase.currentUser = updated
         supabase.upsertProfile(updated)
     }
+
+    fun isDeveloperOrAdmin(): Boolean {
+        val user = _currentUser.value ?: return false
+        val email = user.email.trim().lowercase()
+        return email == "nazmusshakibshihan@gmail.com" ||
+               user.rank.equals("Developer", ignoreCase = true) ||
+               user.rank.equals("Admin", ignoreCase = true)
+    }
+
+    suspend fun fetchAllUsers(): List<UserProfile> {
+        return supabase.fetchUsers()
+    }
+
+    suspend fun updateUserRole(userId: String, newRank: String): Result<Unit> {
+        val res = supabase.updateUserRank(userId, newRank)
+        if (res.isSuccess) {
+            if (_currentUser.value?.id == userId) {
+                val updated = _currentUser.value!!.copy(rank = newRank)
+                _currentUser.value = updated
+                supabase.currentUser = updated
+            }
+        }
+        return res
+    }
+
+    suspend fun fetchStorageStats(): DatabaseStorageStats {
+        return supabase.fetchDatabaseStats()
+    }
+
+    suspend fun purgeOldMessages(): Result<Int> {
+        val res = supabase.purgeOldMessages()
+        if (res.isSuccess) {
+            _messages.value = emptyList()
+        }
+        return res
+    }
+
+    suspend fun broadcastAnnouncement(content: String): Result<ChatMessage> {
+        val user = _currentUser.value ?: return Result.failure(Exception("Not logged in"))
+        val announcement = ChatMessage(
+            id = java.util.UUID.randomUUID().toString(),
+            channelId = "announcements",
+            userId = user.id,
+            userName = user.fullName,
+            userAvatar = user.avatarUrl,
+            minecraftIgn = user.minecraftIgn,
+            userRank = user.rank,
+            content = content,
+            createdAt = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault()).format(java.util.Date())
+        )
+        return supabase.sendMessage(announcement)
+    }
 }
