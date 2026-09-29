@@ -8,6 +8,9 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.mcbdone.app.BuildConfig
@@ -17,6 +20,14 @@ import kotlinx.coroutines.withContext
 class GoogleAuthManager(private val context: Context) {
 
     private val credentialManager = CredentialManager.create(context)
+
+    fun getLegacyGoogleSignInClient(activity: Activity): GoogleSignInClient {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+            .requestEmail()
+            .build()
+        return GoogleSignIn.getClient(activity, gso)
+    }
 
     suspend fun signInWithGoogle(activity: Activity): Result<String> = withContext(Dispatchers.IO) {
         try {

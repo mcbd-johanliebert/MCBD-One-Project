@@ -1,7 +1,10 @@
 package com.mcbdone.app.ui.screens.auth
 
 import android.app.Activity
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -23,10 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
 import com.mcbdone.app.data.remote.GoogleAuthManager
 import com.mcbdone.app.data.repository.ChatRepository
 import com.mcbdone.app.ui.components.GlassButton
 import com.mcbdone.app.ui.components.MinecraftAvatar
+import com.mcbdone.app.ui.components.ResponsiveScreenContainer
 import com.mcbdone.app.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -40,6 +46,43 @@ fun LoginScreen(
     val scope = rememberCoroutineScope()
     val googleAuthManager = remember { GoogleAuthManager(context) }
     var isLoading by remember { mutableStateOf(false) }
+
+    val legacyGoogleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val idToken = account?.idToken
+            if (!idToken.isNullOrEmpty()) {
+                scope.launch {
+                    val loginRes = chatRepository.onGoogleLoginSuccess(idToken)
+                    isLoading = false
+                    if (loginRes.isSuccess) {
+                        Toast.makeText(context, "স্বাগতম MCBD কমিউনিটিতে!", Toast.LENGTH_SHORT).show()
+                        onLoginSuccess()
+                    } else {
+                        val err = loginRes.exceptionOrNull()?.message ?: "Supabase Google Provider error"
+                        Toast.makeText(context, "Supabase Auth Error: $err", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } else {
+                isLoading = false
+                Toast.makeText(context, "Google Token পাওয়া যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: ApiException) {
+            isLoading = false
+            Log.e("LoginScreen", "Google Play Services sign-in error (code: ${e.statusCode})", e)
+            val msg = when (e.statusCode) {
+                10 -> "Developer Error: Web Client ID বা SHA-1 অমিল"
+                12500 -> "Google Play Services Authentication ত্রুটি"
+                7 -> "Network error: ইন্টারনেট সংযোগ চেক করুন"
+                12501 -> "Sign-in বাতিল করা হয়েছে"
+                else -> "Google Sign-In Error (Code: ${e.statusCode})"
+            }
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+        }
+    }
 
     AmbientGlassBackground(modifier = modifier) {
         Column(
@@ -161,13 +204,11 @@ fun LoginScreen(
                                             ).show()
                                         }
                                     } else {
-                                        isLoading = false
-                                        val err = tokenResult.exceptionOrNull()?.localizedMessage ?: "Google Sign-In cancelled or failed"
-                                        Toast.makeText(
-                                            context,
-                                            "Google Sign-In: $err",
-                                            Toast.LENGTH_LONG
-                                        ).show()
+                                        Log.w("LoginScreen", "CredentialManager failed: ${tokenResult.exceptionOrNull()?.message}, launching Play Services fallback...")
+                                        val client = googleAuthManager.getLegacyGoogleSignInClient(activity)
+                                        client.signOut().addOnCompleteListener {
+                                            legacyGoogleSignInLauncher.launch(client.signInIntent)
+                                        }
                                     }
                                 }
                             }
