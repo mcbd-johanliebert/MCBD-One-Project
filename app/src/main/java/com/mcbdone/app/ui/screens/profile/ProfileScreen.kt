@@ -50,11 +50,12 @@ fun ProfileScreen(
     val isUpdateAvailable by chatRepository.isUpdateAvailable.collectAsState()
 
     AmbientGlassBackground(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 80.dp)
-        ) {
+        ResponsiveScreenContainer(maxContentWidth = 720.dp) { _, _ ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 80.dp)
+            ) {
             GlassTopBar(
                 title = "Minecraft Profile",
                 subtitle = "মাইনক্রাফট বাংলাদেশ প্রোফাইল ও সেটিংস"
@@ -110,7 +111,7 @@ fun ProfileScreen(
 
                             // Minecraft Rank Badge
                             MinecraftRankBadge(
-                                rank = currentUser?.rank ?: "Diamond Member"
+                                rank = currentUser?.rank ?: "Member"
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -448,6 +449,7 @@ fun ProfileScreen(
                 chatRepository = chatRepository,
                 onDismiss = { showAdminCenter = false }
             )
+        }
         }
     }
 }

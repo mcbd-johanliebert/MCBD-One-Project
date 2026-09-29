@@ -84,6 +84,7 @@ fun AdminControlCenterDialog(
         ) {
             Box(
                 modifier = Modifier
+                    .widthIn(max = 680.dp)
                     .fillMaxWidth()
                     .fillMaxHeight(0.92f)
                     .shadow(24.dp, RoundedCornerShape(28.dp), spotColor = Color(0x30000000))

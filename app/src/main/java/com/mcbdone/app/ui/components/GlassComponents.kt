@@ -1,7 +1,9 @@
 package com.mcbdone.app.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,7 +46,11 @@ fun GlassButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (isPressed) 0.96f else 1f, label = "btn_scale")
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.94f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "btn_scale"
+    )
 
     val bgBrush = if (isPrimary) {
         Brush.linearGradient(
@@ -128,14 +134,27 @@ fun GlassIconButton(
     tint: Color = TextPrimary,
     badgeCount: Int = 0
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.88f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "icon_btn_scale"
+    )
+
     Box(
         modifier = modifier
+            .scale(scale)
             .size(size)
             .shadow(4.dp, CircleShape, spotColor = Color(0x15000000))
             .clip(CircleShape)
             .background(Color(0xD9FFFFFF))
             .border(1.dp, GlassBorderGradient, CircleShape)
-            .clickable(onClick = onClick),
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -313,32 +332,46 @@ fun GlassBottomBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 12.dp)
-            .shadow(16.dp, RoundedCornerShape(32.dp), spotColor = Color(0x18000000))
-            .clip(RoundedCornerShape(32.dp))
-            .background(Color(0xEBFFFFFF))
-            .border(1.2.dp, GlassBorderGradient, RoundedCornerShape(32.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .widthIn(max = 500.dp)
+                .fillMaxWidth()
+                .shadow(16.dp, RoundedCornerShape(32.dp), spotColor = Color(0x18000000))
+                .clip(RoundedCornerShape(32.dp))
+                .background(Color(0xEBFFFFFF))
+                .border(1.2.dp, GlassBorderGradient, RoundedCornerShape(32.dp))
+                .padding(horizontal = 10.dp, vertical = 8.dp)
         ) {
-            items.forEach { (route, label, icon) ->
-                val selected = currentRoute == route
-                val bgModifier = if (selected) {
-                    Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0x2210B981))
-                        .border(1.dp, EmeraldPrimary.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
-                        .padding(horizontal = 14.dp, vertical = 8.dp)
-                } else {
-                    Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .clickable { onNavigate(route) }
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items.forEach { (route, label, icon) ->
+                    val selected = currentRoute == route
+                    val tabScale by animateFloatAsState(
+                        targetValue = if (selected) 1.04f else 1f,
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                        label = "tab_scale"
+                    )
+
+                    val bgModifier = if (selected) {
+                        Modifier
+                            .scale(tabScale)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color(0x2210B981))
+                            .border(1.dp, EmeraldPrimary.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                    } else {
+                        Modifier
+                            .scale(tabScale)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { onNavigate(route) }
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    }
 
                 Row(
                     modifier = bgModifier,
@@ -363,6 +396,7 @@ fun GlassBottomBar(
             }
         }
     }
+}
 }
 
 @Composable
@@ -417,7 +451,7 @@ fun ChatMessageBubble(
 
         Column(
             horizontalAlignment = if (isCurrentUser) Alignment.End else Alignment.Start,
-            modifier = Modifier.widthIn(max = 280.dp)
+            modifier = Modifier.widthIn(min = 90.dp, max = 340.dp)
         ) {
             // Header for incoming messages
             if (!isCurrentUser) {

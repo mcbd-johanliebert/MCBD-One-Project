@@ -61,9 +61,10 @@ fun ChatRoomScreen(
     }
 
     AmbientGlassBackground(modifier = modifier) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        ResponsiveScreenContainer(maxContentWidth = 780.dp) { _, _ ->
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
             // Floating Glass Top Header
             GlassTopBar(
                 title = "# ${channel.name}",
@@ -295,4 +296,5 @@ fun ChatRoomScreen(
             }
         }
     }
+}
 }

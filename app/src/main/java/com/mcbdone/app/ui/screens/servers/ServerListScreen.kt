@@ -4,11 +4,15 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +35,7 @@ import com.mcbdone.app.data.model.MinecraftServer
 import com.mcbdone.app.data.repository.ChatRepository
 import com.mcbdone.app.ui.components.GlassButton
 import com.mcbdone.app.ui.components.GlassTopBar
+import com.mcbdone.app.ui.components.ResponsiveScreenContainer
 import com.mcbdone.app.ui.theme.*
 
 @Composable
@@ -42,21 +47,43 @@ fun ServerListScreen(
     val servers by chatRepository.servers.collectAsState()
 
     AmbientGlassBackground(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 80.dp)
-        ) {
-            GlassTopBar(
-                title = "BD Server Hub",
-                subtitle = "বাংলাদেশি লো-পিং সার্ভার তালিকা"
-            )
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+        ResponsiveScreenContainer(maxContentWidth = 860.dp) { isTablet, _ ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 80.dp)
             ) {
+                GlassTopBar(
+                    title = "BD Server Hub",
+                    subtitle = "বাংলাদেশি লো-পিং সার্ভার তালিকা"
+                )
+
+                if (isTablet) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        items(servers) { server ->
+                            ServerCard(
+                                server = server,
+                                onCopyIp = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clip = ClipData.newPlainText("Minecraft IP", server.ipAddress)
+                                    clipboard.setPrimaryClip(clip)
+                                    Toast.makeText(context, "${server.ipAddress} কপি করা হয়েছে!", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
                 // Header Banner
                 item {
                     Box(
@@ -154,6 +181,8 @@ fun ServerListScreen(
                             Toast.makeText(context, "${server.ipAddress} কপি করা হয়েছে!", Toast.LENGTH_SHORT).show()
                         }
                     )
+                }
+                    }
                 }
             }
         }

@@ -42,11 +42,12 @@ fun ChatListScreen(
     var showAdminCenter by remember { mutableStateOf(false) }
 
     AmbientGlassBackground(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 80.dp) // space for floating bottom bar
-        ) {
+        ResponsiveScreenContainer(maxContentWidth = 840.dp) { _, _ ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 80.dp) // space for floating bottom bar
+            ) {
             // Glass Top Bar
             GlassTopBar(
                 title = "MCBD Community",
@@ -262,6 +263,7 @@ fun ChatListScreen(
                                     )
                                 )
                             )
+                            .glassShimmer()
                             .border(1.2.dp, GlassBorderGradient, RoundedCornerShape(22.dp))
                             .padding(16.dp)
                     ) {
@@ -297,6 +299,7 @@ fun ChatListScreen(
                 chatRepository = chatRepository,
                 onDismiss = { showAdminCenter = false }
             )
+        }
         }
     }
 }

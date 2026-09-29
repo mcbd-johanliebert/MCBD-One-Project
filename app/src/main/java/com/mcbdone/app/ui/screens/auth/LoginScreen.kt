@@ -52,6 +52,7 @@ fun LoginScreen(
             // Main Frosted Glass Hero Card
             Box(
                 modifier = Modifier
+                    .widthIn(max = 440.dp)
                     .fillMaxWidth()
                     .shadow(24.dp, RoundedCornerShape(32.dp), spotColor = Color(0x1810B981))
                     .clip(RoundedCornerShape(32.dp))

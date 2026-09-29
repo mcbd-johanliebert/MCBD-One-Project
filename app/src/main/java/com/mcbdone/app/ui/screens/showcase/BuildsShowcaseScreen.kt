@@ -6,6 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +35,7 @@ import com.mcbdone.app.data.model.ShowcaseItem
 import com.mcbdone.app.data.repository.ChatRepository
 import com.mcbdone.app.ui.components.GlassTopBar
 import com.mcbdone.app.ui.components.MinecraftAvatar
+import com.mcbdone.app.ui.components.ResponsiveScreenContainer
 import com.mcbdone.app.ui.theme.*
 
 @Composable
@@ -45,15 +49,16 @@ fun BuildsShowcaseScreen(
     val categories = listOf("All", "Mega Build", "Redstone Farm", "Survival", "Pixel Art")
 
     AmbientGlassBackground(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 80.dp)
-        ) {
-            GlassTopBar(
-                title = "Builds & Redstone",
-                subtitle = "বাংলাদেশি মাইনক্রাফটারদের সৃষ্টিশীল কাজ"
-            )
+        ResponsiveScreenContainer(maxContentWidth = 860.dp) { isTablet, _ ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 80.dp)
+            ) {
+                GlassTopBar(
+                    title = "Builds & Redstone",
+                    subtitle = "বাংলাদেশি মাইনক্রাফটারদের সৃষ্টিশীল কাজ"
+                )
 
             // Category Filter Pills
             LazyRow(
@@ -128,6 +133,18 @@ fun BuildsShowcaseScreen(
                         )
                     }
                 }
+            } else if (isTablet) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(filtered) { item ->
+                        ShowcaseCard(item = item)
+                    }
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -139,6 +156,7 @@ fun BuildsShowcaseScreen(
                     }
                 }
             }
+        }
         }
     }
 }
