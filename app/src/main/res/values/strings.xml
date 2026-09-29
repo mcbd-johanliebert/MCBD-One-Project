@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">MCBD ONE</string>
+    <string name="tagline">Minecraft Bangladesh Community</string>
+    <string name="google_sign_in">Continue with Google</string>
+    <string name="channels_title">Community Channels</string>
+    <string name="direct_messages">Direct Messages</string>
+    <string name="servers_title">BD Minecraft Servers</string>
+    <string name="showcase_title">Builds &amp; Redstone</string>
+    <string name="profile_title">Minecraft Profile</string>
+</resources>

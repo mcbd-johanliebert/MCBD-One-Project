@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="mcbd_emerald_dark">#059669</color>
+    <color name="mcbd_emerald">#10B981</color>
+    <color name="mcbd_emerald_light">#34D399</color>
+    <color name="mcbd_diamond">#06B6D4</color>
+    <color name="mcbd_bg_white">#F8FAFC</color>
+    <color name="mcbd_text_primary">#0F172A</color>
+    <color name="mcbd_text_secondary">#64748B</color>
+    <color name="mcbd_glass_stroke">#33FFFFFF</color>
+</resources>

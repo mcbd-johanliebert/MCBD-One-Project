@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Diamond/Emerald Crest in Center -->
+    <path
+        android:fillColor="#047857"
+        android:pathData="M54,26L78,50L54,74L30,50Z" />
+    <path
+        android:fillColor="#34D399"
+        android:pathData="M54,30L74,50L54,70L34,50Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,34L68,50L54,64L40,50Z" />
+    <!-- Bangladesh Flag Accent Dot -->
+    <path
+        android:fillColor="#EF4444"
+        android:pathData="M54,44a6,6 0 1,0 0.001,0Z" />
+</vector>
