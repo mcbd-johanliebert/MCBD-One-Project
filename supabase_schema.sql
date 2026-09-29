@@ -68,7 +68,7 @@ create table public.profiles (
     minecraft_ign text default 'SteveBD',
     rank text default 'Survivalist',
     status text default 'online',
-    bio text default 'Minecraft Bangladesh Community Member 🇧🇩⛏️',
+    bio text default 'Minecraft Bangladesh Community Member',
     created_at timestamptz default now(),
     updated_at timestamptz default now()
 );
@@ -245,14 +245,14 @@ end $$;
 -- 6. SEED INITIAL DATA (VERSION 1.0.0)
 -- -------------------------------------------------------------------------
 insert into public.channels (id, name, topic, icon, is_announcement) values
-('announcements', 'announcements', 'অফিশিয়াল বিডি টুর্নামেন্ট ও সার্ভার আপডেট', '📢', true),
-('general', 'general-chat', 'বাংলাদেশি মাইনক্রাফটারদের আড্ডা ও খোশগল্প', '💬', false),
-('pvp-bedwars', 'pvp-and-bedwars', 'বেডওয়ার্স স্কোয়াড ও পিভিপি ট্রিক্স', '⚔️', false),
-('builds-redstone', 'builds-and-redstone', 'অসাধারণ বিল্ড ও রেডস্টোন মেশিনারি শেয়ার', '🧱', false),
-('bd-servers', 'bd-server-ips', 'বাংলাদেশি সেরা সার্ভার আইপি ও লিস্ট', '🎮', false);
+('announcements', 'announcements', 'অফিশিয়াল বিডি টুর্নামেন্ট ও সার্ভার আপডেট', 'campaign', true),
+('general', 'general-chat', 'বাংলাদেশি মাইনক্রাফটারদের আড্ডা ও খোশগল্প', 'chat', false),
+('pvp-bedwars', 'pvp-and-bedwars', 'বেডওয়ার্স স্কোয়াড ও পিভিপি ট্রিক্স', 'shield', false),
+('builds-redstone', 'builds-and-redstone', 'অসাধারণ বিল্ড ও রেডস্টোন মেশিনারি শেয়ার', 'architecture', false),
+('bd-servers', 'bd-server-ips', 'বাংলাদেশি সেরা সার্ভার আইপি ও লিস্ট', 'dns', false);
 
 
 insert into public.app_versions (version_name, version_code, min_supported_version, is_mandatory, download_url, changelog, release_date) values
 ('1.0.0', 1, '1.0.0', false, 'https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.0', 
-'["Official launch of MCBD ONE 🇧🇩 (v1.0.0)", "White Themed Glassmorphic UI with dynamic ambient refraction", "Custom Minecraft 3D skin heads & rank system", "Bangladesh verified server list with live ping & player count", "Realtime community channels with emoji reactions", "Google Auth & Supabase Realtime synchronization"]'::jsonb, 
+'["Official launch of MCBD ONE (v1.0.0)", "White Themed Glassmorphic UI with dynamic ambient refraction", "Custom Minecraft 3D skin heads & rank system", "Bangladesh verified server list with live ping & player count", "Realtime community channels with vector icon reactions", "Google Auth & Supabase Realtime synchronization"]'::jsonb, 
 'September 2026');

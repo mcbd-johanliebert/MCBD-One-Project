@@ -10,9 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -51,7 +49,7 @@ fun ChatListScreen(
             // Glass Top Bar
             GlassTopBar(
                 title = "MCBD Community",
-                subtitle = "Minecraft Bangladesh Hub 🇧🇩",
+                subtitle = "Minecraft Bangladesh Hub",
                 actions = {
                     GlassIconButton(
                         icon = Icons.Default.Search,
@@ -174,9 +172,11 @@ fun ChatListScreen(
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = channel.icon,
-                                    fontSize = 20.sp
+                                Icon(
+                                    imageVector = getChannelIcon(channel.id, channel.icon),
+                                    contentDescription = null,
+                                    tint = if (isSelected) EmeraldPrimary else TextPrimary,
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
 
@@ -256,10 +256,13 @@ fun ChatListScreen(
                             .border(1.2.dp, GlassBorderGradient, RoundedCornerShape(22.dp))
                             .padding(16.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = "🏆", fontSize = 28.sp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.EmojiEvents,
+                                contentDescription = null,
+                                tint = Color(0xFFD97706),
+                                modifier = Modifier.size(28.dp)
+                            )
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(

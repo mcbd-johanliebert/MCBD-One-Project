@@ -13,10 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Dns
-import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -79,7 +77,12 @@ fun ServerListScreen(
                     ) {
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = "🎮", fontSize = 24.sp)
+                                Icon(
+                                    imageVector = Icons.Default.SportsEsports,
+                                    contentDescription = null,
+                                    tint = EmeraldPrimary,
+                                    modifier = Modifier.size(24.dp)
+                                )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Minecraft Bangladesh Servers",
@@ -116,7 +119,12 @@ fun ServerListScreen(
                                     .border(1.dp, GlassBorderGradient, RoundedCornerShape(22.dp))
                                     .padding(24.dp)
                             ) {
-                                Text(text = "📡", fontSize = 32.sp)
+                                Icon(
+                                    imageVector = Icons.Default.Dns,
+                                    contentDescription = null,
+                                    tint = TextMuted,
+                                    modifier = Modifier.size(36.dp)
+                                )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "No BD Servers Listed Yet",
@@ -231,7 +239,11 @@ private fun ServerCard(
             ) {
                 TagPill(label = server.gamemode, color = DiamondCyan)
                 TagPill(label = server.version, color = TextSecondary)
-                TagPill(label = "🟢 ${server.onlinePlayers}/${server.maxPlayers}", color = EmeraldPrimary)
+                TagPill(
+                    label = "${server.onlinePlayers}/${server.maxPlayers}",
+                    color = EmeraldPrimary,
+                    icon = Icons.Default.FiberManualRecord
+                )
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -295,18 +307,33 @@ private fun ServerCard(
 }
 
 @Composable
-private fun TagPill(label: String, color: Color) {
+private fun TagPill(
+    label: String,
+    color: Color,
+    icon: ImageVector? = null
+) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .background(color.copy(alpha = 0.12f))
             .padding(horizontal = 8.dp, vertical = 3.dp)
     ) {
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = color
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(9.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            Text(
+                text = label,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = color
+            )
+        }
     }
 }

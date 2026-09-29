@@ -10,6 +10,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.SystemUpdate
@@ -85,7 +87,7 @@ fun VersionUpdateDialog(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = if (isNewUpdate) "New Update Available! 🚀" else "Version Control System 🇧🇩",
+                    text = if (isNewUpdate) "New Update Available!" else "Version Control System",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,
@@ -111,7 +113,12 @@ fun VersionUpdateDialog(
                     )
                     if (isNewUpdate) {
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(text = "➔", fontSize = 12.sp, color = EmeraldDark, fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = EmeraldDark,
+                            modifier = Modifier.size(12.dp)
+                        )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "Latest: v${versionInfo.versionName}",
@@ -149,12 +156,13 @@ fun VersionUpdateDialog(
                                     .padding(vertical = 3.dp),
                                 verticalAlignment = Alignment.Top
                             ) {
-                                Text(
-                                    text = "•",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = EmeraldPrimary,
-                                    modifier = Modifier.padding(end = 6.dp)
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = EmeraldPrimary,
+                                    modifier = Modifier
+                                        .padding(end = 6.dp, top = 2.dp)
+                                        .size(12.dp)
                                 )
                                 Text(
                                     text = note,

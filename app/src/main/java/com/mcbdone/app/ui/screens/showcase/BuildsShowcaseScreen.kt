@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -106,7 +106,12 @@ fun BuildsShowcaseScreen(
                             .border(1.dp, GlassBorderGradient, RoundedCornerShape(24.dp))
                             .padding(28.dp)
                     ) {
-                        Text(text = "🧱", fontSize = 36.sp)
+                        Icon(
+                            imageVector = Icons.Default.Architecture,
+                            contentDescription = null,
+                            tint = EmeraldPrimary,
+                            modifier = Modifier.size(40.dp)
+                        )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = "No Builds in this Category Yet",

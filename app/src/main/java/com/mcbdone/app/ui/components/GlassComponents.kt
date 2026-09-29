@@ -255,19 +255,27 @@ fun GlassTopBar(
                         color = TextPrimary
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    // Minecraft Bangladesh Icon Pill
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                             .background(Color(0x2010B981))
-                            .padding(horizontal = 5.dp, vertical = 1.dp)
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Text(
-                            text = "🇧🇩 MCBD",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = EmeraldDark
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Public,
+                                contentDescription = null,
+                                tint = EmeraldDark,
+                                modifier = Modifier.size(11.dp)
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = "MCBD",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = EmeraldDark
+                            )
+                        }
                     }
                 }
                 if (!subtitle.isNullOrEmpty()) {
@@ -478,30 +486,73 @@ fun ChatMessageBubble(
                 }
             }
 
-            // Reactions Bar
+            // Reactions Bar (Icons only - no emojis)
             if (message.reactions.isNotEmpty()) {
                 Row(
                     modifier = Modifier.padding(top = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    message.reactions.forEach { (emoji, count) ->
+                    message.reactions.forEach { (reactionKey, count) ->
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(Color(0xD9FFFFFF))
                                 .border(1.dp, GlassBorderGradient, RoundedCornerShape(12.dp))
-                                .clickable { onReactionClick(emoji) }
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                                .clickable { onReactionClick(reactionKey) }
+                                .padding(horizontal = 7.dp, vertical = 3.dp)
                         ) {
-                            Text(
-                                text = "$emoji $count",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Icon(
+                                    imageVector = getReactionIcon(reactionKey),
+                                    contentDescription = null,
+                                    tint = EmeraldDark,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Text(
+                                    text = "$count",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextPrimary
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+fun getChannelIcon(channelId: String, iconKey: String? = null): ImageVector {
+    return when (channelId.lowercase()) {
+        "announcements" -> Icons.Default.Campaign
+        "general" -> Icons.Default.Chat
+        "pvp-bedwars" -> Icons.Default.MilitaryTech
+        "builds-redstone" -> Icons.Default.Architecture
+        "bd-servers" -> Icons.Default.Dns
+        else -> when (iconKey?.lowercase()) {
+            "campaign" -> Icons.Default.Campaign
+            "chat" -> Icons.Default.Chat
+            "shield", "pvp" -> Icons.Default.MilitaryTech
+            "architecture", "builds" -> Icons.Default.Architecture
+            "dns", "storage" -> Icons.Default.Dns
+            else -> Icons.Default.Forum
+        }
+    }
+}
+
+fun getReactionIcon(key: String): ImageVector {
+    return when (key.lowercase()) {
+        "like", "thumb", "thumbs_up", "👍" -> Icons.Default.ThumbUp
+        "love", "heart", "favorite", "❤️" -> Icons.Default.Favorite
+        "star", "⭐" -> Icons.Default.Star
+        "bolt", "lightning", "⚡" -> Icons.Default.Bolt
+        "fire", "hot", "🔥" -> Icons.Default.Whatshot
+        "diamond", "gem", "💎" -> Icons.Default.Diamond
+        "shield", "sword", "⚔️" -> Icons.Default.Shield
+        else -> Icons.Default.ThumbUp
     }
 }

@@ -44,7 +44,14 @@ fun ChatRoomScreen(
     val currentUser by chatRepository.currentUser.collectAsState()
 
     var textInput by remember { mutableStateOf("") }
-    val quickReactions = listOf("🔥", "💎", "❤️", "⚔️", "💥", "🇧🇩")
+    val quickReactionIcons = listOf(
+        Pair("like", Icons.Default.ThumbUp),
+        Pair("love", Icons.Default.Favorite),
+        Pair("star", Icons.Default.Star),
+        Pair("bolt", Icons.Default.Bolt),
+        Pair("fire", Icons.Default.Whatshot),
+        Pair("shield", Icons.Default.Shield)
+    )
 
     // Automatically scroll to bottom when messages update
     LaunchedEffect(messages.size) {
@@ -75,12 +82,21 @@ fun ChatRoomScreen(
                             .background(Color(0x2010B981))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        Text(
-                            text = "${channel.icon} ${channel.id}",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = EmeraldDark
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = getChannelIcon(channel.id, channel.icon),
+                                contentDescription = null,
+                                tint = EmeraldDark,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = channel.id,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = EmeraldDark
+                            )
+                        }
                     }
                 }
             )
@@ -108,7 +124,12 @@ fun ChatRoomScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = channel.icon, fontSize = 32.sp)
+                            Icon(
+                                imageVector = getChannelIcon(channel.id, channel.icon),
+                                contentDescription = null,
+                                tint = EmeraldPrimary,
+                                modifier = Modifier.size(36.dp)
+                            )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = "Welcome to #${channel.name}!",
@@ -134,13 +155,22 @@ fun ChatRoomScreen(
                                 .padding(vertical = 24.dp, horizontal = 16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "💬 No messages yet in #${channel.name}\nBe the first to say hello to the community!",
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                color = TextMuted,
-                                fontSize = 13.sp,
-                                lineHeight = 20.sp
-                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Default.ChatBubbleOutline,
+                                    contentDescription = null,
+                                    tint = TextMuted,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "No messages yet in #${channel.name}\nBe the first to say hello to the community!",
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    color = TextMuted,
+                                    fontSize = 13.sp,
+                                    lineHeight = 20.sp
+                                )
+                            }
                         }
                     }
                 }
@@ -151,14 +181,14 @@ fun ChatRoomScreen(
                     ChatMessageBubble(
                         message = msg,
                         isCurrentUser = isCurrent,
-                        onReactionClick = { emoji ->
-                            chatRepository.addReaction(msg.id, emoji)
+                        onReactionClick = { reactionKey ->
+                            chatRepository.addReaction(msg.id, reactionKey)
                         }
                     )
                 }
             }
 
-            // Quick Emoji Reaction Bar (Floating Glass Pill)
+            // Quick Vector Reaction Bar (Floating Glass Pill - Icons Only)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -166,7 +196,7 @@ fun ChatRoomScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                quickReactions.forEach { emoji ->
+                quickReactionIcons.forEach { (reactionKey, iconVector) ->
                     Box(
                         modifier = Modifier
                             .shadow(2.dp, CircleShape, spotColor = Color(0x10000000))
@@ -174,11 +204,18 @@ fun ChatRoomScreen(
                             .background(Color(0xE6FFFFFF))
                             .border(1.dp, GlassBorderGradient, CircleShape)
                             .clickable {
-                                textInput += " $emoji"
+                                messages.lastOrNull()?.let { lastMsg ->
+                                    chatRepository.addReaction(lastMsg.id, reactionKey)
+                                }
                             }
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
-                        Text(text = emoji, fontSize = 14.sp)
+                        Icon(
+                            imageVector = iconVector,
+                            contentDescription = reactionKey,
+                            tint = EmeraldPrimary,
+                            modifier = Modifier.size(15.dp)
+                        )
                     }
                 }
             }

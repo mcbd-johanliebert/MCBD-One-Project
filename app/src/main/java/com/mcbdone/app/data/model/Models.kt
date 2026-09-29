@@ -12,7 +12,7 @@ data class UserProfile(
     @SerialName("minecraft_ign") val minecraftIgn: String = "",
     val rank: String = "Survivalist",
     val status: String = "online",
-    val bio: String = "Minecraft Bangladesh Community Member 🇧🇩⛏️",
+    val bio: String = "Minecraft Bangladesh Community Member",
     @SerialName("created_at") val createdAt: String? = null
 )
 
@@ -82,7 +82,7 @@ data class AppVersionInfo(
     @SerialName("is_mandatory") val isMandatory: Boolean = false,
     @SerialName("download_url") val downloadUrl: String = "https://github.com/mcbdone/app/releases/tag/v1.0.0",
     val changelog: List<String> = listOf(
-        "Official launch of MCBD ONE 🇧🇩",
+        "Official launch of MCBD ONE",
         "White Themed Glassmorphic UI with dynamic ambient refraction",
         "Minecraft skin avatar engine & rank badges",
         "Bangladeshi server hub with live ping & player count",

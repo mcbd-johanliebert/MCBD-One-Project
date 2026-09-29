@@ -13,10 +13,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.InstallMobile
 import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -101,8 +103,15 @@ fun StrictUpdateOverlay(
                             .padding(horizontal = 10.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = Color(0xFFDC2626),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "🚨 MANDATORY UPDATE REQUIRED",
+                            text = "MANDATORY UPDATE REQUIRED",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Color(0xFFDC2626),
@@ -163,7 +172,14 @@ fun StrictUpdateOverlay(
                             fontWeight = FontWeight.SemiBold,
                             color = TextSecondary
                         )
-                        Text(text = " ➔ ", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = EmeraldDark)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = EmeraldDark,
+                            modifier = Modifier
+                                .padding(horizontal = 6.dp)
+                                .size(12.dp)
+                        )
                         Text(
                             text = "Latest: v${versionInfo.versionName}",
                             fontSize = 12.sp,
@@ -207,7 +223,14 @@ fun StrictUpdateOverlay(
                                     modifier = Modifier.padding(vertical = 2.dp),
                                     verticalAlignment = Alignment.Top
                                 ) {
-                                    Text(text = "⚡", fontSize = 12.sp, modifier = Modifier.padding(end = 6.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = EmeraldPrimary,
+                                        modifier = Modifier
+                                            .padding(end = 6.dp, top = 2.dp)
+                                            .size(12.dp)
+                                    )
                                     Text(
                                         text = note,
                                         fontSize = 12.sp,

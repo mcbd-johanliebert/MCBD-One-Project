@@ -115,7 +115,7 @@ class SupabaseManager(context: Context) {
                     minecraftIgn = ign,
                     rank = "Survivalist",
                     status = "online",
-                    bio = "Minecraft Bangladesh Community Member 🇧🇩⛏️"
+                    bio = "Minecraft Bangladesh Community Member"
                 )
 
                 currentSessionToken = accessToken
@@ -310,22 +310,22 @@ class SupabaseManager(context: Context) {
             isMandatory = false,
             downloadUrl = "https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.0",
             changelog = listOf(
-                "🚀 Official launch of MCBD ONE 🇧🇩 (v1.0.0)",
-                "💎 White Themed Glassmorphic UI with dynamic light refraction",
-                "⛏️ Custom Minecraft 3D skin heads & rank system",
-                "🎮 Bangladesh verified server list with live ping & player count",
-                "💬 Realtime community channels with emoji reactions",
-                "🔒 Google Auth & Supabase Realtime synchronization"
+                "Official launch of MCBD ONE (v1.0.0)",
+                "White Themed Glassmorphic UI with dynamic light refraction",
+                "Custom Minecraft 3D skin heads & rank system",
+                "Bangladesh verified server list with live ping & player count",
+                "Realtime community channels with vector icon reactions",
+                "Google Auth & Supabase Realtime synchronization"
             ),
             releaseDate = "September 2026"
         )
 
         val fallbackChannels = listOf(
-            Channel("announcements", "announcements", "অফিশিয়াল বিডি টুর্নামেন্ট ও সার্ভার আপডেট", "📢", true),
-            Channel("general", "general-chat", "বাংলাদেশি মাইনক্রাফটারদের আড্ডা ও খোশগল্প", "💬", false),
-            Channel("pvp-bedwars", "pvp-and-bedwars", "বেডওয়ার্স স্কোয়াড ও পিভিপি ট্রিক্স", "⚔️", false),
-            Channel("builds-redstone", "builds-and-redstone", "অসাধারণ বিল্ড ও রেডস্টোন মেশিনারি শেয়ার", "🧱", false),
-            Channel("bd-servers", "bd-server-ips", "বাংলাদেশি সেরা সার্ভার আইপি ও লিস্ট", "🎮", false)
+            Channel("announcements", "announcements", "অফিশিয়াল বিডি টুর্নামেন্ট ও সার্ভার আপডেট", "campaign", true),
+            Channel("general", "general-chat", "বাংলাদেশি মাইনক্রাফটারদের আড্ডা ও খোশগল্প", "chat", false),
+            Channel("pvp-bedwars", "pvp-and-bedwars", "বেডওয়ার্স স্কোয়াড ও পিভিপি ট্রিক্স", "shield", false),
+            Channel("builds-redstone", "builds-and-redstone", "অসাধারণ বিল্ড ও রেডস্টোন মেশিনারি শেয়ার", "architecture", false),
+            Channel("bd-servers", "bd-server-ips", "বাংলাদেশি সেরা সার্ভার আইপি ও লিস্ট", "dns", false)
         )
 
         val fallbackMessages = emptyList<ChatMessage>()

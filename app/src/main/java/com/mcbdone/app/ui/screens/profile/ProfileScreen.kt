@@ -10,12 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -113,7 +109,7 @@ fun ProfileScreen(
 
                             // Minecraft Rank Badge
                             MinecraftRankBadge(
-                                rank = currentUser?.rank ?: "💎 Diamond Member"
+                                rank = currentUser?.rank ?: "Diamond Member"
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -227,7 +223,12 @@ fun ProfileScreen(
                             InfoRow(label = "Supabase Project", value = "cvppveogubeudebsmazd.supabase.co")
                             InfoRow(label = "Google Client ID", value = "636820962691-gmsp3j0ju8... apps")
                             InfoRow(label = "Package Name", value = "com.mcbdone.app")
-                            InfoRow(label = "Status", value = "🟢 Realtime Sync Active")
+                            InfoRow(
+                                label = "Status",
+                                value = "Realtime Sync Active",
+                                icon = Icons.Default.CheckCircle,
+                                iconTint = EmeraldDark
+                            )
                         }
                     }
                 }
@@ -268,14 +269,23 @@ fun ProfileScreen(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(if (isUpdateAvailable) Color(0xFFFEF3C7) else Color(0x2010B981))
-                                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                                        .padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
-                                    Text(
-                                        text = if (isUpdateAvailable) "🚀 Update Available" else "🟢 Up to Date",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isUpdateAvailable) Color(0xFFB45309) else EmeraldDark
-                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = if (isUpdateAvailable) Icons.Default.ArrowCircleUp else Icons.Default.CheckCircle,
+                                            contentDescription = null,
+                                            tint = if (isUpdateAvailable) Color(0xFFB45309) else EmeraldDark,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = if (isUpdateAvailable) "Update Available" else "Up to Date",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isUpdateAvailable) Color(0xFFB45309) else EmeraldDark
+                                        )
+                                    }
                                 }
                             }
 
@@ -340,7 +350,12 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun InfoRow(label: String, value: String) {
+private fun InfoRow(
+    label: String,
+    value: String,
+    icon: ImageVector? = null,
+    iconTint: Color = EmeraldDark
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -353,12 +368,23 @@ private fun InfoRow(label: String, value: String) {
             fontSize = 12.sp,
             color = TextSecondary
         )
-        Text(
-            text = value,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            color = TextPrimary,
-            maxLines = 1
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(13.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            Text(
+                text = value,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextPrimary,
+                maxLines = 1
+            )
+        }
     }
 }
