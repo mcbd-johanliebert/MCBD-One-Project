@@ -108,9 +108,9 @@ create policy "Allow insert servers" on public.servers for insert with check (tr
 create policy "Allow all users to read showcase" on public.showcase_posts for select using (true);
 create policy "Allow insert showcase" on public.showcase_posts for insert with check (true);
 
--- Realtime Publication for instant messaging
+-- Realtime Publication for instant messaging and live updates
 drop publication if exists supabase_realtime;
-create publication supabase_realtime for table public.messages, public.profiles, public.servers, public.showcase_posts;
+create publication supabase_realtime for table public.messages, public.profiles, public.servers, public.showcase_posts, public.app_versions;
 
 -- Seed Default Channels
 insert into public.channels (id, name, topic, icon, is_announcement) values
