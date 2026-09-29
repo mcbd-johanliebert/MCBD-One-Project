@@ -643,18 +643,20 @@ class SupabaseManager(context: Context) {
 
     companion object {
         val fallbackVersion = AppVersionInfo(
-            id = "v1.0.1",
-            versionName = "1.0.1",
-            versionCode = 2,
+            id = "v1.0.2",
+            versionName = "1.0.2",
+            versionCode = 3,
             minSupportedVersion = "1.0.0",
             isMandatory = false,
-            downloadUrl = "https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.1",
+            downloadUrl = "https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.2",
             changelog = listOf(
-                "MCBD ONE v1.0.1 Release",
-                "Awwwards-inspired responsive glassmorphism for phones, foldables, and tablets",
-                "Staff badge system with unique vector icons for Developer, Admin, Executive & Moderators",
-                "Real-time Database Storage Health Gauge & 500MB quota preventive actions",
-                "Root Developer Control Center with member badge delegation"
+                "MCBD ONE v1.0.2 Release",
+                "Full root developer privileges across all channels, servers, builds, and user moderation",
+                "Live server creation, verification toggling, and instant removal",
+                "Community build showcase creator and direct content moderation",
+                "Zero promotional ads/tournament banners - clean, focused UI",
+                "Direct chat message deletion and real-time announcement broadcast",
+                "Live 500MB Supabase storage health monitor and quota maintenance"
             ),
             releaseDate = "September 2026"
         )

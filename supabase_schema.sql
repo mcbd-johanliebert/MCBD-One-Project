@@ -318,7 +318,7 @@ $$;
 grant execute on function public.get_database_stats() to anon, authenticated;
 
 -- -------------------------------------------------------------------------
--- 6. SEED INITIAL DATA (VERSION 1.0.1)
+-- 6. SEED INITIAL DATA (VERSION 1.0.2)
 -- -------------------------------------------------------------------------
 -- Channels are managed directly from the Developer Panel (clean fresh start)
 
@@ -329,9 +329,9 @@ insert into public.servers (name, ip_address, port, gamemode, version, online_pl
 ('Bengal SMP', 'smp.bengalmc.com', 25565, 'Lifesteal / Hardcore', '1.21.x', 94, 300, 32, true, 'অ্যাড্রেনালাইন রাশ লাইফস্টিল মেকানিক্স ও পিভিপি অ্যারেনা। হার্ডকোর প্লেয়ারদের জন্য আদর্শ।'),
 ('Dhaka Pixelverse', 'play.dhakapixel.com', 25565, 'Survival / Economy', '1.20+', 75, 250, 36, true, 'কমিউনিটি ফ্রেন্ডলি বিল্ডারদের জন্য পিভিপি-মুক্ত শান্ত নিরিবিলি পরিবেশ ও রিয়েল এস্টেট সিস্টেম।');
 
--- Official App Release (v1.0.1)
+-- Official App Release (v1.0.2)
 insert into public.app_versions (version_name, version_code, min_supported_version, is_mandatory, download_url, changelog, release_date) values
-('1.0.1', 2, '1.0.0', false, 'https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.1', 
-'["MCBD ONE v1.0.1 Release", "Awwwards-inspired responsive glassmorphism across phones, foldables, and tablets", "Staff badge hierarchy with unique vector icons (Developer, Admin, Executive, Senior Mod, Group Mod)", "Real-time Supabase Database Storage Health Gauge with 500MB quota prevention", "Root Developer Control Center with user rank delegation", "Pure Material vector icons throughout (zero emojis)"]'::jsonb, 
+('1.0.2', 3, '1.0.0', false, 'https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.2', 
+'["MCBD ONE v1.0.2 Release", "Full root developer privileges across all channels, servers, builds, and user moderation", "Live server creation, verification toggling, and instant removal", "Community build showcase creator and direct content moderation", "Zero promotional ads/tournament banners - clean, focused UI", "Direct chat message deletion and real-time announcement broadcast", "Live 500MB Supabase storage health monitor and quota maintenance"]'::jsonb, 
 'September 2026');
 

@@ -79,18 +79,20 @@ data class ShowcaseItem(
 
 @Serializable
 data class AppVersionInfo(
-    val id: String = "v1.0.1",
-    @SerialName("version_name") val versionName: String = "1.0.1",
-    @SerialName("version_code") val versionCode: Int = 2,
+    val id: String = "v1.0.2",
+    @SerialName("version_name") val versionName: String = "1.0.2",
+    @SerialName("version_code") val versionCode: Int = 3,
     @SerialName("min_supported_version") val minSupportedVersion: String = "1.0.0",
     @SerialName("is_mandatory") val isMandatory: Boolean = false,
-    @SerialName("download_url") val downloadUrl: String = "https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.1",
+    @SerialName("download_url") val downloadUrl: String = "https://github.com/mcbd-johanliebert/MCBD-One-Project/releases/tag/v1.0.2",
     val changelog: List<String> = listOf(
-        "MCBD ONE v1.0.1 Release",
-        "Awwwards-inspired responsive glassmorphism for phones, foldables, and tablets",
-        "Staff badge system with unique vector icons for Developer, Admin, Executive & Moderators",
-        "Real-time Database Storage Health Gauge & 500MB quota preventive actions",
-        "Root Developer Control Center with member badge delegation"
+        "MCBD ONE v1.0.2 Release",
+        "Full root developer privileges across all channels, servers, builds, and user moderation",
+        "Live server creation, verification toggling, and instant removal",
+        "Community build showcase creator and direct content moderation",
+        "Zero promotional ads/tournament banners - clean, focused UI",
+        "Direct chat message deletion and real-time announcement broadcast",
+        "Live 500MB Supabase storage health monitor and quota maintenance"
     ),
     @SerialName("release_date") val releaseDate: String = "September 2026"
 )
